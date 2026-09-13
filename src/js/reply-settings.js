@@ -376,8 +376,9 @@
         let blocked = null;
         function gate(ok, label, detail) { gates.push({ ok: !!ok, label: label, detail: detail || '' }); return !ok; }
         // ① 二级锁（锁定=系统预设字卡整体不存在，词典抽卡池为空）
+        //    #390 文案人话化：用户看不懂「二级锁」是什么、为什么管词典——点明因果与去处
         const lockOk = !(window.cardLockOpen && !window.cardLockOpen());
-        if (gate(lockOk, '二级锁', lockOk ? '已解锁' : '未解锁') && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
+        if (gate(lockOk, '防未成年人锁', lockOk ? '已解锁' : '锁定中·词典被锁停') && !blocked) blocked = '「防未成年人锁定」开启中：词典属于系统内置字卡，锁定时词典拼字整体停用（下方开关全开也没效果）——到开屏公告区「防未成年人·内置字卡锁定」卡输入密码解锁，解锁后自动恢复';
         // ② 词典分类开关（字卡库→系统预设字卡→分类「词典」）
         const catOk = !(window.defaultCardCat && window.defaultCardCat('dict') === false);
         if (gate(catOk, '词典分类', catOk ? '开' : '关') && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';

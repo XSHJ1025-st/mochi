@@ -7059,6 +7059,8 @@ background:rgba(0,0,0,.06); border-radius:8px; padding:2px 8px;
 [data-theme="dark"] #qs-diag .qsdiag-bad { color:#f87171; background:rgba(239,68,68,.16); }
 [data-theme="dark"] #qs-diag .qsdiag-okline { color:#4ade80; }
 [data-theme="dark"] #qs-diag .qsdiag-blocked { color:#f87171; background:rgba(239,68,68,.14); }
+.dict-lock-hint { margin:8px 12px 0; font-size:11px; font-weight:600; color:#b3261e; background:rgba(220,38,38,.1); border-radius:8px; padding:6px 9px; line-height:1.6; }
+[data-theme="dark"] .dict-lock-hint { color:#f87171; background:rgba(239,68,68,.14); }
 .gs-row {
 display:flex; align-items:center; justify-content:space-between; gap:10px;
 padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.05);
@@ -9366,9 +9368,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789279957127">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.626</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 14:12<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789280146352">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.627</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 14:15<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10647,7 +10649,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.626</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.627</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10942,7 +10944,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.626</span>
+              <span class="lic-ver">v3.26.627</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -11849,6 +11851,9 @@ transition-duration: .01ms !important;
         <span class="ch-name">聊天默认字卡·词典</span>
       </div>
       <div class="sm-set-hint" style="padding:8px 16px 0">说明：系统词典供「词典拼字」抽句与切词，按分组展示，可逐张开启或关闭；语录进拼字抽句池，词进切词词典。</div>
+      <!-- #390：二级锁与词典的关系提示——锁定=系统内置字卡整体停用（含词典），下方场景开关开着也无效；
+           用户实报「词典开关都开了却没效果、不懂和开屏二级密码的关系」。默认隐藏，default-cards.js 按锁态渲染 -->
+      <div class="dict-lock-hint" id="dict-lock-hint" hidden></div>
       <!-- v3.36.x：词典使用设置（与聊天默认字卡页同款交互）——场景开关 + 使用概率 + 一键全部关闭。
            存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 75，
            写信/朋友圈默认 30%）。聊天关=词典拼字整体停；写信/朋友圈开=词典语录按概率混入信件/动态文案。 -->
@@ -12009,7 +12014,7 @@ transition-duration: .01ms !important;
         <label class="toggle"><input type="checkbox" id="tm-enabled"><span class="tk"></span></label>
       </div>
       <div class="gs-row"><span>分享概率</span><div class="stepper" data-min="5" data-max="30" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="tm-prob-val" readonly><button class="stp-max">+</button></div></div>
-      <div class="sm-set-hint" style="padding:4px 16px 6px">触发后需间隔几条正常聊天才会再次分享；同类心情短时间不会连续出现。</div>
+      <div class="sm-set-hint" style="padding:4px 16px 6px">触发后需间隔几条正常聊天才会再次分享；同类心情短时间不会连续出现。分享消息的来源小标有 10% 概率显示为「你的心情」——TA 有时发这张卡其实是想问你的心情，小标会随机变化。</div>
       <div class="gs-title">心情分组</div>
       <div class="cc-groups-bar" id="tm-groups-bar"></div>
       <div class="card-search glass" id="tm-search">
@@ -19735,7 +19740,7 @@ if (!actions) return;
 const open = window.cardLockOpen();
 if (tip) tip.textContent = open
 ? '系统内置字卡已解锁（成年人验证已通过）。如需恢复未成年人保护，可重新上锁。'
-: '系统内置字卡已全部锁定，这是面向未成年人的保护措施，不是 bug。不输密码也能正常使用全部功能，密码只管两件事：解锁系统内置字卡、跳过开屏的 2 个问答。注意：锁定时若自定义字卡（含 mj 字卡）一张都没添加，回复会只能重复发兜底内容（如「嗯嗯」），自己在自定义字卡里添加几张即可。密码非常简单，答案就在开屏里可以找到；解开密码请勿二传（不要告诉别人），一旦有人二传，密码就会被重新设置。';
+: '系统内置字卡已全部锁定，这是面向未成年人的保护措施，不是 bug。锁定影响：默认聊天字卡、词典（含词典拼字）、其他系统预设互动字卡全部停用；你自建的字卡与情绪 / 心意 / 意图字卡不受影响。所以若发现「某功能开关都开了却没效果」，先看是不是锁定中。不输密码也能正常使用全部功能，密码只管两件事：解锁系统内置字卡、跳过开屏的 2 个问答。注意：锁定时若自定义字卡（含 mj 字卡）一张都没添加，回复会只能重复发兜底内容（如「嗯嗯」），自己在自定义字卡里添加几张即可。密码非常简单，答案就在开屏里可以找到；解开密码请勿二传（不要告诉别人），一旦有人二传，密码就会被重新设置。';
 actions.innerHTML = '';
 const state = document.createElement('div');
 state.className = 'cardlock-state';
@@ -43435,7 +43440,7 @@ const gates = [];
 let blocked = null;
 function gate(ok, label, detail) { gates.push({ ok: !!ok, label: label, detail: detail || '' }); return !ok; }
 const lockOk = !(window.cardLockOpen && !window.cardLockOpen());
-if (gate(lockOk, '二级锁', lockOk ? '已解锁' : '未解锁') && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
+if (gate(lockOk, '防未成年人锁', lockOk ? '已解锁' : '锁定中·词典被锁停') && !blocked) blocked = '「防未成年人锁定」开启中：词典属于系统内置字卡，锁定时词典拼字整体停用（下方开关全开也没效果）——到开屏公告区「防未成年人·内置字卡锁定」卡输入密码解锁，解锁后自动恢复';
 const catOk = !(window.defaultCardCat && window.defaultCardCat('dict') === false);
 if (gate(catOk, '词典分类', catOk ? '开' : '关') && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';
 const useOk = !(window.dictUse && window.dictUse('chat') === false);
@@ -45235,6 +45240,18 @@ const gOv = function (k) { const s = st(); const v = s ? s.get('dict-overall-' +
 const sOv = function (k, nv) { const s = st(); if (s) s.set('dict-overall-' + k, String(nv)); };
 window.dictUse = function (scene) { return gUse(scene === 'mail' ? 'mail' : scene === 'feed' ? 'feed' : 'chat'); };
 window.dictOverall = function (scene) { return gOv(scene === 'mail' ? 'mail' : scene === 'feed' ? 'feed' : 'chat'); };
+const lockHint = document.getElementById('dict-lock-hint');
+function renderDictLockHint() {
+if (!lockHint) return;
+let locked = false;
+try { locked = !!(window.cardLockOpen && !window.cardLockOpen()); } catch (e) { locked = false; }
+if (!locked) { lockHint.hidden = true; lockHint.textContent = ''; return; }
+lockHint.hidden = false;
+lockHint.textContent = '防未成年人锁定开启中：词典属于系统内置字卡，锁定时聊天 / 写信 / 朋友圈都不会使用词典（下方开关全开也没效果，不是没保存）。到开屏公告区「防未成年人·内置字卡锁定」卡输入密码解锁，解锁后自动恢复，无需改这里任何开关。';
+}
+renderDictLockHint();
+document.addEventListener('mochi-cardlock-open', renderDictLockHint);
+document.addEventListener('mochi-cardlock-locked', renderDictLockHint);
 [['chat', '聊天'], ['mail', '写信'], ['feed', '朋友圈']].forEach(function (pair) {
 const k = pair[0], label = pair[1];
 const el = document.getElementById('dict-use-' + k);
@@ -90892,4 +90909,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzf36vb -->
+<!-- __MOCHI_EOF__ mtzf78vk -->

@@ -2758,6 +2758,9 @@
         <span class="ch-name">聊天默认字卡·词典</span>
       </div>
       <div class="sm-set-hint" style="padding:8px 16px 0">说明：系统词典供「词典拼字」抽句与切词，按分组展示，可逐张开启或关闭；语录进拼字抽句池，词进切词词典。</div>
+      <!-- #390：二级锁与词典的关系提示——锁定=系统内置字卡整体停用（含词典），下方场景开关开着也无效；
+           用户实报「词典开关都开了却没效果、不懂和开屏二级密码的关系」。默认隐藏，default-cards.js 按锁态渲染 -->
+      <div class="dict-lock-hint" id="dict-lock-hint" hidden></div>
       <!-- v3.36.x：词典使用设置（与聊天默认字卡页同款交互）——场景开关 + 使用概率 + 一键全部关闭。
            存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 75，
            写信/朋友圈默认 30%）。聊天关=词典拼字整体停；写信/朋友圈开=词典语录按概率混入信件/动态文案。 -->
@@ -2918,7 +2921,7 @@
         <label class="toggle"><input type="checkbox" id="tm-enabled"><span class="tk"></span></label>
       </div>
       <div class="gs-row"><span>分享概率</span><div class="stepper" data-min="5" data-max="30" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="tm-prob-val" readonly><button class="stp-max">+</button></div></div>
-      <div class="sm-set-hint" style="padding:4px 16px 6px">触发后需间隔几条正常聊天才会再次分享；同类心情短时间不会连续出现。</div>
+      <div class="sm-set-hint" style="padding:4px 16px 6px">触发后需间隔几条正常聊天才会再次分享；同类心情短时间不会连续出现。分享消息的来源小标有 10% 概率显示为「你的心情」——TA 有时发这张卡其实是想问你的心情，小标会随机变化。</div>
       <div class="gs-title">心情分组</div>
       <div class="cc-groups-bar" id="tm-groups-bar"></div>
       <div class="card-search glass" id="tm-search">
