@@ -162,7 +162,7 @@
         const g = JSON.parse(raw);
         if (!g || !g.text) return;
         (g.text || []).forEach(([gname, arr]) => (arr || []).forEach(c => {
-          if (typeof c === 'string' && c.indexOf('|||') < 0 && c.indexOf('data:') !== 0) set[c] = 1;
+          if (typeof c === 'string' && c.indexOf('|||') < 0 && c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c))) set[c] = 1; // FIX 2026-09-13 #394 令牌卡不入统计卡集
         }));
       });
     } catch (e) {}
@@ -231,6 +231,7 @@
       if (!m || typeof m.text !== 'string' || !m.side) return;
       if (m.special || m.retracted) return;
       if (m.text.indexOf('data:') === 0 || m.text.indexOf('http') === 0) return;
+      if (window.mochiMediaIsToken && window.mochiMediaIsToken(m.text)) return; // FIX 2026-09-13 #394 存量乱码消息不入「常用文字字卡」榜
       const core = m.text.replace(EXPR_CORE_RE, '');
       if (!core) return;
       if (!(m.text in cardSet)) return;
@@ -4076,7 +4077,7 @@ if (ckRefresh) {
       if (!window.getPool) return '';
       const t = window.getPool().text || [];
       // 排除空串与拍一拍（getPool 已过滤拍一拍），也排除媒体 dataURL
-      const arr = t.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0);
+      const arr = t.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s))); // FIX 2026-09-13 #394 令牌卡不进悬浮伴侣话术
       return (arr.length && Math.random() < 0.7) ? arr[Math.floor(Math.random() * arr.length)] : '';
     } catch (e) { return ''; }
   }

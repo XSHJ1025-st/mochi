@@ -9368,9 +9368,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789280146352">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.627</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 14:15<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789281146434">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.629</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 14:32<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10649,7 +10649,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.627</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.629</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10944,7 +10944,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.627</span>
+              <span class="lic-ver">v3.26.629</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -24324,7 +24324,7 @@ const WIDGET_IDS = ['deco', 'quote-row', 'checkin', 'apps', 'music', 'p2apps', '
 'app-chat', 'app-group-chat', 'app-home', 'app-mail', 'app-feed', 'app-calendar', 'app-memory', 'app-divination', 'app-note', 'app-music', 'app-stats', 'app-interact', 'app-checkin', 'p3apps', 'app-period', 'app-accounting', 'app-garden',     'app-tongpin', 'app-shenshou', 'app-water', 'app-eat', 'app-pomo', 'app-cjian', 'app-memo-arc', 'app-my-arc', 'app-room', 'app-piggy'];
 const WIDGET_NAMES = {
 deco: '纪念日卡', 'quote-row': '今日情话 / 已摸鱼', checkin: '打卡横幅', apps: '功能图标(整组)',
-music: '音乐播放器', p2apps: '第二页功能图标(整组)', 'memo-row': '今日备忘 / 心情', week: '本周日常', weekend: '周末倒计时',
+music: '音乐播放器', p2apps: '第二页功能图标(整组)', 'memo-row': '今日备忘 / 心情', week: '本周日常', weekend: '摸鱼倒计时（周末）',
 'desk-clock': '时钟', 'desk-calendar': '月历', 'desk-timer': '计时器', 'desk-anniv': '纪念日倒计时', 'desk-period': '经期倒计时',
 'app-chat': '聊天图标', 'app-group-chat': '群聊图标', 'app-home': '主页图标', 'app-mail': '信箱图标', 'app-feed': '朋友圈图标',
 'app-calendar': '日历图标', 'app-memory': '纪念图标', 'app-divination': '占卜图标', 'app-note': '收藏图标',
@@ -24615,6 +24615,8 @@ function applyGroupChatMode() {
 try {
 let en = false;
 try { const v = window.xyStore ? window.xyStore('xy-home-v2').get('group-chat-enabled') : null; if (v !== null && v !== undefined) en = v === '1'; else en = store.get('group-chat-enabled') === '1'; } catch (e) {}
+let divPin = false;
+try { divPin = store.get('divination-desk-pin') === '1'; } catch (e) {}
 const mainGrid = document.querySelector('.app-grid[data-app="main"]');
 const pool = ensureWidgetPool();
 const chatBtn = document.querySelector('.app[data-app="chat"]');
@@ -24630,10 +24632,11 @@ mainGrid.insertBefore(gcBtn, chatBtn.nextSibling);
 }
 gcBtn.hidden = false;
 }
-if (divBtn && divBtn.parentNode !== pool) {
+if (divBtn && divBtn.parentNode !== pool && !divPin) {
 pool.appendChild(divBtn);
 }
 } else {
+if (divPin) { try { store.set('divination-desk-pin', '0'); } catch (e) {} }
 if (gcBtn && gcBtn.parentNode !== pool) {
 pool.appendChild(gcBtn);
 }
@@ -24728,6 +24731,7 @@ const addBtn = pageSlide.querySelector('.desk-page-add');
 if (addBtn) pageSlide.insertBefore(node, addBtn);
 else pageSlide.appendChild(node);
 }
+if (wid === 'app-divination') { try { store.set('divination-desk-pin', '1'); } catch (e) {} }
 syncPageHint(pageSlide);
 saveDeskLayout();
 if (window.deskRebuild) window.deskRebuild();
@@ -28419,7 +28423,7 @@ if (q && typeof q === 'object') {
 const isQM = (s) => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s)));
 const imgs = (q.imgs || []).filter(isQM).slice(0, 3);
 const t = quoteTextSafe(q.t);
-const tHtml = (t && t.indexOf('data:') !== 0 && !(imgs.length && QUOTE_PLACEHOLDER.test(t))) ? escTxtBr(FQ(t)) : '';
+const tHtml = (t && t.indexOf('data:') !== 0 && !(imgs.length && QUOTE_PLACEHOLDER.test(t))) ? (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(FQ(t)) : escTxtBr(FQ(t))) : ''; // FIX 2026-09-13 #394 引用块内嵌令牌转图
 let inner = '';
 if (imgs.length) inner += '<span class="msg-quote-imgs">' + imgs.map(s => '<img class="msg-quote-img" src="' + attrEsc(s) + '" alt="图片" loading="lazy" decoding="async">').join('') + '</span>';
 if (tHtml) inner += '<span class="msg-quote-text">' + tHtml + '</span>';
@@ -28429,7 +28433,7 @@ if (typeof q === 'string' && (q.indexOf('data:') === 0 || (window.mochiMediaIsTo
 return '<div class="msg-quote"><img class="msg-quote-img" src="' + attrEsc(q) + '" alt="图片" loading="lazy" decoding="async"></div>';
 }
 const qs = quoteTextSafe(q);
-return '<div class="msg-quote"><span class="msg-quote-text">' + escTxtBr(FQ(qs)) + '</span></div>';
+return '<div class="msg-quote"><span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(FQ(qs)) : escTxtBr(FQ(qs))) + '</span></div>'; // FIX 2026-09-13 #394 引用块内嵌令牌转图
 }
 let inplaceDrafts = {};
 let inplaceFocusIdx = -1;
@@ -28951,8 +28955,9 @@ appendTarget = null;
 batchRendering = false;
 renderStart = newStart;
 if (preNum > 0 && anchor) {
+const anchorTopBefore = anchor.offsetTop;
 body.insertBefore(frag, anchor);
-body.scrollTop = beforeTop + anchor.offsetTop;
+body.scrollTop = beforeTop + (anchor.offsetTop - anchorTopBefore);
 } else {
 body.scrollTop = body.scrollHeight; // 原窗口为空，直接滚到底
 }
@@ -29469,7 +29474,7 @@ return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '"
 }).join('') + '</div>';
 }
 if (textPart && textPart.trim()) {
-inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(T(textPart)) + '</span>';
+inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(T(textPart)) : escTxtBr(T(textPart))) + '</span>';
 }
 b.innerHTML = rec.quote
 ? quoteHtml(rec.quote, rec.qside) + inner
@@ -33850,7 +33855,7 @@ const isSticker = p.sub === 'sticker';
 return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
 }).join('') + '</div>';
 }
-if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(textPart) + '</span>';
+if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(textPart) : escTxtBr(textPart)) + '</span>';
 b.innerHTML = inner;
 b.querySelectorAll('.msg-img-big').forEach(img => {
 img.addEventListener('click', (e) => {
@@ -33870,7 +33875,7 @@ fillVoiceBubble(b, f.text);
 b.style.padding = '6px';
 b.innerHTML = '<img class="msg-img" src="' + attrEsc(f.text) + '" alt="表情">';
 } else {
-b.innerHTML = '<span style="opacity:.85">' + escTxtBr(f.text) + '</span>';
+b.innerHTML = '<span style="opacity:.85">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(f.text) : escTxtBr(f.text)) + '</span>'; // FIX 2026-09-13 #394 收藏单条文本内嵌令牌转图
 }
 }
 if (f.mood && f.mood.length) {
@@ -36041,14 +36046,14 @@ const tRaw = gcQuoteTextSafe(q.t);
 const tOk = typeof tRaw === 'string' && tRaw && tRaw.indexOf('data:') !== 0;
 return '<div class="msg-quote"><span class="msg-quote-imgs">' +
 q.imgs.map(s => '<img class="msg-quote-img" src="' + attrEsc(s) + '" alt="图片">').join('') +
-'</span>' + (tOk ? '<span class="msg-quote-text">' + escTxtBr(tRaw) + '</span>' : '') + '</div>';
+'</span>' + (tOk ? '<span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(tRaw) : escTxtBr(tRaw)) + '</span>' : '') + '</div>'; // FIX 2026-09-13 #394 群聊引用内嵌令牌转图
 }
 if (q && typeof q === 'string') {
 const qs = gcQuoteTextSafe(q);
 if (qs.indexOf('data:') === 0) {
 return '<div class="msg-quote"><img class="msg-quote-img" src="' + attrEsc(qs) + '" alt="图片"></div>';
 }
-return '<div class="msg-quote"><span class="msg-quote-text">' + escTxtBr(qs) + '</span></div>';
+return '<div class="msg-quote"><span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(qs) : escTxtBr(qs)) + '</span></div>'; // FIX 2026-09-13 #394 群聊引用内嵌令牌转图
 }
 return '';
 }
@@ -36110,7 +36115,7 @@ return m;
 }
 if (rec.special === 'system') {
 m.className = 'msg-poke';
-m.innerHTML = '<span>' + escTxtBr(rec.text || '') + '</span>';
+m.innerHTML = '<span>' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>'; // FIX 2026-09-13 #394 群聊文本气泡内嵌令牌转图
 gcPlaceMsg(m, beforeEl);
 return m;
 }
@@ -36169,7 +36174,7 @@ const isSticker = p.sub === 'sticker';
 return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
 }).join('') + '</div>';
 }
-if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(textPart) + '</span>';
+if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(textPart) : escTxtBr(textPart)) + '</span>'; // FIX 2026-09-13 #394 群聊 parts 文本内嵌令牌转图
 b.innerHTML = quoteStr + inner;
 } else {
 b.innerHTML = quoteStr + '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
@@ -36234,17 +36239,19 @@ let gcUnpinTsY = 0;
 body.addEventListener('touchstart', (e) => {
 try { gcUnpinTsY = e.touches[0].clientY; } catch (err) { gcUnpinTsY = 0; }
 gcUserGcScrollTouched = true;
+try { body.classList.add('scroll-anchor-auto'); } catch (err) {}
 }, { passive: true });
 body.addEventListener('touchend', (e) => {
 try {
 const dy = Math.abs(e.changedTouches[0].clientY - gcUnpinTsY);
-if (dy < 10 && nearGcBottom()) gcUserGcScrollTouched = false;
+if (dy < 10 && nearGcBottom()) { gcUserGcScrollTouched = false; try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} } // FIX #393 轻点回跟=回钉态摘锚定
 } catch (err) {}
 }, { passive: true });
-body.addEventListener('wheel', () => { gcUserGcScrollTouched = true; }, { passive: true });
+body.addEventListener('wheel', () => { gcUserGcScrollTouched = true; try { body.classList.add('scroll-anchor-auto'); } catch (err) {} }, { passive: true });
 function followGcBottom(force) {
 try {
 if (!force && gcUserGcScrollTouched) return;
+try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} // FIX #393 回钉贴底关回锚定（#316 单聊同口径，防与 JS 显式滚动对打）
 scrollToBottom();
 const rewrite = () => {
 try { if (!gcUserGcScrollTouched) scrollToBottom(); } catch (e) {}
@@ -36255,7 +36262,7 @@ gcUserGcScrollTouched = false;
 } catch (e) {}
 }
 body.addEventListener('scroll', () => {
-if (gcUserGcScrollTouched && nearGcBottom()) gcUserGcScrollTouched = false;
+if (gcUserGcScrollTouched && nearGcBottom()) { gcUserGcScrollTouched = false; try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} } // FIX #393 滚回贴底=回钉态摘锚定
 }, { passive: true });
 const GC_DOM_WINDOW = 400, GC_DOM_CUT = 320;
 function pruneGcDom() {
@@ -36574,7 +36581,7 @@ if (rec.parts && rec.parts.length) {
 const imgs = rec.parts.filter(p => p.k === 'img').length;
 const txt = rec.parts.filter(p => p.k === 'text').map(p => p.v).join(' ');
 return (imgs ? ph('[图片]') : '') +
-(txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
+(txt ? '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(txt) : escTxtBr(txt)) + '</span>' : '');
 }
 return '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
 }
@@ -36594,7 +36601,7 @@ imgs.map(p => {
 const isSticker = p.sub === 'sticker';
 return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
 }).join('') + '</div>' +
-(txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
+(txt ? '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(txt) : escTxtBr(txt)) + '</span>' : '');
 }
 return '';
 }
@@ -44705,7 +44712,7 @@ mergeDictCustom();
 function dictCustomAdd(kind, text) {
 const v = String(text == null ? '' : text).replace(/\s+/g, '');
 if (!v) return { ok: false, msg: '内容为空，先输入再保存' };
-if (v.indexOf('data:') === 0 || v.indexOf('|||') >= 0) return { ok: false, msg: '该内容不能作为词典词条' };
+if (v.indexOf('data:') === 0 || v.indexOf('|||') >= 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(v))) return { ok: false, msg: '该内容不能作为词典词条' }; // FIX 2026-09-13 #394 媒体池令牌串不得进词典
 const pref = kind === 'quote' ? '语录' : '词库';
 const dupPreset = PRESET_DICT.some(g => g[0].indexOf(pref) === 0 && g[1].indexOf(v) >= 0);
 if (dupPreset) return { ok: false, msg: '内置词典已有这条' };
@@ -45457,6 +45464,7 @@ if (window.isDefaultCardOff) quotes = quotes.filter(q => !window.isDefaultCardOf
 return quotes.filter(function (q) {
 if (typeof q !== 'string' || !q.trim()) return false;
 if (q.indexOf('data:') === 0 || q.indexOf('|||') >= 0) return false;
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(q)) return false; // FIX 2026-09-13 #394 媒体池令牌卡不进词典抽卡池
 if (/[\uD800-\uDBFF]/.test(q)) return false; // emoji 整卡不拼
 return true;
 });
@@ -45482,6 +45490,7 @@ if (p && p.text && p.text.length) {
 pool = pool.concat(p.text.filter(function (s) {
 if (typeof s !== 'string' || s.length < 2 || s.length > 26) return false;
 if (s.indexOf('data:') === 0 || s.indexOf('|||') >= 0) return false;
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return false; // FIX 2026-09-13 #394 同款守卫（混入池二次校验）
 if (/[\uD800-\uDBFF]/.test(s)) return false;
 return (s.match(/[\u4e00-\u9fff]/g) || []).length >= 2;
 }));
@@ -63440,7 +63449,7 @@ if (!raw) return;
 const g = JSON.parse(raw);
 if (!g || !g.text) return;
 (g.text || []).forEach(([gname, arr]) => (arr || []).forEach(c => {
-if (typeof c === 'string' && c.indexOf('|||') < 0 && c.indexOf('data:') !== 0) set[c] = 1;
+if (typeof c === 'string' && c.indexOf('|||') < 0 && c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c))) set[c] = 1; // FIX 2026-09-13 #394 令牌卡不入统计卡集
 }));
 });
 } catch (e) {}
@@ -63506,6 +63515,7 @@ msgs2.forEach(m => {
 if (!m || typeof m.text !== 'string' || !m.side) return;
 if (m.special || m.retracted) return;
 if (m.text.indexOf('data:') === 0 || m.text.indexOf('http') === 0) return;
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(m.text)) return; // FIX 2026-09-13 #394 存量乱码消息不入「常用文字字卡」榜
 const core = m.text.replace(EXPR_CORE_RE, '');
 if (!core) return;
 if (!(m.text in cardSet)) return;
@@ -66944,7 +66954,7 @@ function pmpChatCardText() {
 try {
 if (!window.getPool) return '';
 const t = window.getPool().text || [];
-const arr = t.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0);
+const arr = t.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s))); // FIX 2026-09-13 #394 令牌卡不进悬浮伴侣话术
 return (arr.length && Math.random() < 0.7) ? arr[Math.floor(Math.random() * arr.length)] : '';
 } catch (e) { return ''; }
 }
@@ -75215,6 +75225,7 @@ function candText(t) {
 const s = String(t == null ? '' : t).trim();
 if (!s || s.length > 100) return '';                            // 超长不装瓶（与放瓶输入上限一致）
 if (s.indexOf('|||') >= 0) return '';                           // 语音卡标记
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return ''; // FIX 2026-09-13 #394 媒体池令牌卡不装瓶（存量乱码消息会成为候选）
 if (/^(https?:|data:)/i.test(s)) return '';                     // 链接 / 内联图片
 return s;
 }
@@ -90909,4 +90920,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzf78vk -->
+<!-- __MOCHI_EOF__ mtzfsojm -->

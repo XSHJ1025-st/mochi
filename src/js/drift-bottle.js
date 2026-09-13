@@ -61,6 +61,7 @@
     const s = String(t == null ? '' : t).trim();
     if (!s || s.length > 100) return '';                            // 超长不装瓶（与放瓶输入上限一致）
     if (s.indexOf('|||') >= 0) return '';                           // 语音卡标记
+    if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return ''; // FIX 2026-09-13 #394 媒体池令牌卡不装瓶（存量乱码消息会成为候选）
     if (/^(https?:|data:)/i.test(s)) return '';                     // 链接 / 内联图片
     return s;
   }

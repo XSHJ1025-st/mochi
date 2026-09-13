@@ -123,7 +123,7 @@
   function dictCustomAdd(kind, text) {
     const v = String(text == null ? '' : text).replace(/\s+/g, '');
     if (!v) return { ok: false, msg: '内容为空，先输入再保存' };
-    if (v.indexOf('data:') === 0 || v.indexOf('|||') >= 0) return { ok: false, msg: '该内容不能作为词典词条' };
+    if (v.indexOf('data:') === 0 || v.indexOf('|||') >= 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(v))) return { ok: false, msg: '该内容不能作为词典词条' }; // FIX 2026-09-13 #394 媒体池令牌串不得进词典
     const pref = kind === 'quote' ? '语录' : '词库';
     const dupPreset = PRESET_DICT.some(g => g[0].indexOf(pref) === 0 && g[1].indexOf(v) >= 0);
     if (dupPreset) return { ok: false, msg: '内置词典已有这条' };

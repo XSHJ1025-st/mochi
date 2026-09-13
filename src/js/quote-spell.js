@@ -41,6 +41,7 @@
     return quotes.filter(function (q) {
       if (typeof q !== 'string' || !q.trim()) return false;
       if (q.indexOf('data:') === 0 || q.indexOf('|||') >= 0) return false;
+      if (window.mochiMediaIsToken && window.mochiMediaIsToken(q)) return false; // FIX 2026-09-13 #394 媒体池令牌卡不进词典抽卡池
       if (/[\uD800-\uDBFF]/.test(q)) return false; // emoji 整卡不拼
       return true;
     });
@@ -73,6 +74,7 @@
             pool = pool.concat(p.text.filter(function (s) {
               if (typeof s !== 'string' || s.length < 2 || s.length > 26) return false;
               if (s.indexOf('data:') === 0 || s.indexOf('|||') >= 0) return false;
+              if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return false; // FIX 2026-09-13 #394 同款守卫（混入池二次校验）
               if (/[\uD800-\uDBFF]/.test(s)) return false;
               return (s.match(/[\u4e00-\u9fff]/g) || []).length >= 2;
             }));

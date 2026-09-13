@@ -496,14 +496,14 @@
       const tOk = typeof tRaw === 'string' && tRaw && tRaw.indexOf('data:') !== 0;
       return '<div class="msg-quote"><span class="msg-quote-imgs">' +
         q.imgs.map(s => '<img class="msg-quote-img" src="' + attrEsc(s) + '" alt="图片">').join('') +
-        '</span>' + (tOk ? '<span class="msg-quote-text">' + escTxtBr(tRaw) + '</span>' : '') + '</div>';
+        '</span>' + (tOk ? '<span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(tRaw) : escTxtBr(tRaw)) + '</span>' : '') + '</div>'; // FIX 2026-09-13 #394 群聊引用内嵌令牌转图
     }
     if (q && typeof q === 'string') {
       const qs = gcQuoteTextSafe(q);
       if (qs.indexOf('data:') === 0) {
         return '<div class="msg-quote"><img class="msg-quote-img" src="' + attrEsc(qs) + '" alt="图片"></div>';
       }
-      return '<div class="msg-quote"><span class="msg-quote-text">' + escTxtBr(qs) + '</span></div>';
+      return '<div class="msg-quote"><span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(qs) : escTxtBr(qs)) + '</span></div>'; // FIX 2026-09-13 #394 群聊引用内嵌令牌转图
     }
     return '';
   }
@@ -577,7 +577,7 @@
     // v3.26.x：决定结果系统消息（群聊里使用【帮我决定】/【多人决定】的结果，居中系统样式，同拍一拍）
     if (rec.special === 'system') {
       m.className = 'msg-poke';
-      m.innerHTML = '<span>' + escTxtBr(rec.text || '') + '</span>';
+      m.innerHTML = '<span>' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>'; // FIX 2026-09-13 #394 群聊文本气泡内嵌令牌转图
       gcPlaceMsg(m, beforeEl);
       return m;
     }
@@ -647,7 +647,7 @@
             return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
           }).join('') + '</div>';
       }
-      if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(textPart) + '</span>';
+      if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(textPart) : escTxtBr(textPart)) + '</span>'; // FIX 2026-09-13 #394 群聊 parts 文本内嵌令牌转图
       b.innerHTML = quoteStr + inner;
     } else {
       // v3.8.x：与 chat.js 一致——span 包裹 + 全量转义 + 换行转 <br>
@@ -731,19 +731,26 @@
   body.addEventListener('touchstart', (e) => {
     try { gcUnpinTsY = e.touches[0].clientY; } catch (err) { gcUnpinTsY = 0; }
     gcUserGcScrollTouched = true;
+    // FIX 2026-09-13 #393：#316 只给单聊解钉开回了 Chromium 原生滚动锚定，gc-body 共享
+    // .chat-body 的 overflow-anchor:none 却从未挂回 scroll-anchor-auto＝图多的群聊历史
+    // 上翻时视口上方图片异步解码撑高无人补偿，看的内容被一次次推走＝「滑动屏幕会弹」
+    // （红米 K80 Chrome 报障形态，与单聊 #316 同根因）。触摸/滚轮接管期挂类开回锚定，
+    // 回钉贴底（followGcBottom/滚回贴底/轻点回跟）摘除——#199 防对打语义不变。
+    try { body.classList.add('scroll-anchor-auto'); } catch (err) {}
   }, { passive: true });
   body.addEventListener('touchend', (e) => {
     try {
       const dy = Math.abs(e.changedTouches[0].clientY - gcUnpinTsY);
-      if (dy < 10 && nearGcBottom()) gcUserGcScrollTouched = false;
+      if (dy < 10 && nearGcBottom()) { gcUserGcScrollTouched = false; try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} } // FIX #393 轻点回跟=回钉态摘锚定
     } catch (err) {}
   }, { passive: true });
-  body.addEventListener('wheel', () => { gcUserGcScrollTouched = true; }, { passive: true });
+  body.addEventListener('wheel', () => { gcUserGcScrollTouched = true; try { body.classList.add('scroll-anchor-auto'); } catch (err) {} }, { passive: true });
   function followGcBottom(force) {
     try {
       // FIX #378：跟底闸只看「用户是否手动接管滚动」——内核丢弃首写/迟到解码顶开后
       // 视口离底>150px，旧 nearGcBottom 闸会把后续每条来消息都误判成在看历史永不跟底
       if (!force && gcUserGcScrollTouched) return;
+      try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} // FIX #393 回钉贴底关回锚定（#316 单聊同口径，防与 JS 显式滚动对打）
       scrollToBottom();
       const rewrite = () => {
         try { if (!gcUserGcScrollTouched) scrollToBottom(); } catch (e) {}
@@ -755,7 +762,7 @@
   }
   // FIX #378：用户手动滚回贴底＝解除接管，自动跟底恢复（旧口径解钉后无法恢复）
   body.addEventListener('scroll', () => {
-    if (gcUserGcScrollTouched && nearGcBottom()) gcUserGcScrollTouched = false;
+    if (gcUserGcScrollTouched && nearGcBottom()) { gcUserGcScrollTouched = false; try { body.classList.remove('scroll-anchor-auto'); } catch (err) {} } // FIX #393 滚回贴底=回钉态摘锚定
   }, { passive: true });
   // v3.12.x：停留页内实时追加的 DOM 窗口上限——renderAll 只在进页时收窄到 RENDER_MAX，
   // 之后每条收发都走 renderMsg 直接 append，长时间泡在群里 DOM（含每条一个 dataURL 头像
@@ -1129,7 +1136,8 @@ if (defs && defs.type === 'text' && defs.text) t = defs.text;
       const imgs = rec.parts.filter(p => p.k === 'img').length;
       const txt = rec.parts.filter(p => p.k === 'text').map(p => p.v).join(' ');
       return (imgs ? ph('[图片]') : '') +
-        (txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
+        // FIX 2026-09-13 #394 群聊撤回段文本走内嵌令牌助手（同 #385 单聊撤回段口径）
+        (txt ? '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(txt) : escTxtBr(txt)) + '</span>' : '');
     }
     return '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
   }
@@ -1153,7 +1161,8 @@ if (defs && defs.type === 'text' && defs.text) t = defs.text;
           const isSticker = p.sub === 'sticker';
           return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
         }).join('') + '</div>' +
-        (txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
+        // FIX 2026-09-13 #394 群聊撤回媒体段文本内嵌令牌转图
+        (txt ? '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(txt) : escTxtBr(txt)) + '</span>' : '');
     }
     return '';
   }

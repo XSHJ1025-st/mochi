@@ -4257,7 +4257,7 @@ try {
     'app-chat', 'app-group-chat', 'app-home', 'app-mail', 'app-feed', 'app-calendar', 'app-memory', 'app-divination', 'app-note', 'app-music', 'app-stats', 'app-interact', 'app-checkin', 'p3apps', 'app-period', 'app-accounting', 'app-garden',     'app-tongpin', 'app-shenshou', 'app-water', 'app-eat', 'app-pomo', 'app-cjian', 'app-memo-arc', 'app-my-arc', 'app-room', 'app-piggy'];
   const WIDGET_NAMES = {
     deco: '纪念日卡', 'quote-row': '今日情话 / 已摸鱼', checkin: '打卡横幅', apps: '功能图标(整组)',
-    music: '音乐播放器', p2apps: '第二页功能图标(整组)', 'memo-row': '今日备忘 / 心情', week: '本周日常', weekend: '周末倒计时',
+    music: '音乐播放器', p2apps: '第二页功能图标(整组)', 'memo-row': '今日备忘 / 心情', week: '本周日常', weekend: '摸鱼倒计时（周末）',
     'desk-clock': '时钟', 'desk-calendar': '月历', 'desk-timer': '计时器', 'desk-anniv': '纪念日倒计时', 'desk-period': '经期倒计时',
     'app-chat': '聊天图标', 'app-group-chat': '群聊图标', 'app-home': '主页图标', 'app-mail': '信箱图标', 'app-feed': '朋友圈图标',
     'app-calendar': '日历图标', 'app-memory': '纪念图标', 'app-divination': '占卜图标', 'app-note': '收藏图标',
@@ -4645,6 +4645,11 @@ try {
       // v3.10.x：group-chat-enabled 改全局存储（群聊是全局功能），读时回退旧版每桌面值完成迁移
       let en = false;
       try { const v = window.xyStore ? window.xyStore('xy-home-v2').get('group-chat-enabled') : null; if (v !== null && v !== undefined) en = v === '1'; else en = store.get('group-chat-enabled') === '1'; } catch (e) {}
+      // FIX 2026-09-13 #393：用户意图标记——装修组件库显式加回占卜（pin=1）时群聊模式不再强制收池
+      //（尊重显式摆放，#156「无论在哪都收池」仅对未表态用户生效）；群聊关闭时清除标记恢复 v3.8
+      // 默认语义（下次开启重新隐藏，可再次显式加回）。
+      let divPin = false;
+      try { divPin = store.get('divination-desk-pin') === '1'; } catch (e) {}
       const mainGrid = document.querySelector('.app-grid[data-app="main"]');
       const pool = ensureWidgetPool();
       const chatBtn = document.querySelector('.app[data-app="chat"]');
@@ -4666,10 +4671,14 @@ try {
         // 排在任意页顶层）或从组件库重新加回后，占卜图标一直显示在桌面上。改为群聊开启
         // 期间无论占卜在桌面哪个位置（图标组/任意页）都强制收进隐藏池（已在池则不动）；
         // 关闭后由 else 分支放回首页图标组默认位（v3.8 原语义）。
-        if (divBtn && divBtn.parentNode !== pool) {
+        // FIX 2026-09-13 #393：用户在装修组件库显式加回过占卜（divination-desk-pin=1）时豁免
+        // 强制收池——否则退出装修即被收回，「装修拉出来也加不上」（多机型用户实报）。
+        if (divBtn && divBtn.parentNode !== pool && !divPin) {
           pool.appendChild(divBtn);
         }
       } else {
+        // 群聊关闭：清除占卜显式加回标记（恢复 v3.8 默认语义；只在标记存在时写，避免每次切换联系人空写）
+        if (divPin) { try { store.set('divination-desk-pin', '0'); } catch (e) {} }
         // 群聊按钮：移到隐藏池（脱离 app-grid 避免占位）
         if (gcBtn && gcBtn.parentNode !== pool) {
           pool.appendChild(gcBtn);
@@ -4784,6 +4793,11 @@ try {
         if (addBtn) pageSlide.insertBefore(node, addBtn);
         else pageSlide.appendChild(node);
       }
+      // FIX 2026-09-13 #393：群聊模式下用户从组件库显式把占卜图标加回桌面——写意图标记
+      // divination-desk-pin，applyGroupChatMode 读到标记不再强制收池（修复 #156 语义副作用：
+      // 退出装修即被收回，「装修拉出来也加不上」）。标记 per-cid（store=activeStore），各桌面独立；
+      // 群聊关闭时由 applyGroupChatMode 清除，恢复默认隐藏语义。
+      if (wid === 'app-divination') { try { store.set('divination-desk-pin', '1'); } catch (e) {} }
       syncPageHint(pageSlide);
       saveDeskLayout();
       if (window.deskRebuild) window.deskRebuild();

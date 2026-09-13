@@ -1681,7 +1681,7 @@ if (q && typeof q === 'object') {
 const isQM = (s) => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s)));
 const imgs = (q.imgs || []).filter(isQM).slice(0, 3);
 const t = quoteTextSafe(q.t);
-const tHtml = (t && t.indexOf('data:') !== 0 && !(imgs.length && QUOTE_PLACEHOLDER.test(t))) ? escTxtBr(FQ(t)) : '';
+const tHtml = (t && t.indexOf('data:') !== 0 && !(imgs.length && QUOTE_PLACEHOLDER.test(t))) ? (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(FQ(t)) : escTxtBr(FQ(t))) : ''; // FIX 2026-09-13 #394 引用块内嵌令牌转图
 let inner = '';
 if (imgs.length) inner += '<span class="msg-quote-imgs">' + imgs.map(s => '<img class="msg-quote-img" src="' + attrEsc(s) + '" alt="图片" loading="lazy" decoding="async">').join('') + '</span>';
 if (tHtml) inner += '<span class="msg-quote-text">' + tHtml + '</span>';
@@ -1691,7 +1691,7 @@ if (typeof q === 'string' && (q.indexOf('data:') === 0 || (window.mochiMediaIsTo
 return '<div class="msg-quote"><img class="msg-quote-img" src="' + attrEsc(q) + '" alt="图片" loading="lazy" decoding="async"></div>';
 }
 const qs = quoteTextSafe(q);
-return '<div class="msg-quote"><span class="msg-quote-text">' + escTxtBr(FQ(qs)) + '</span></div>';
+return '<div class="msg-quote"><span class="msg-quote-text">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(FQ(qs)) : escTxtBr(FQ(qs))) + '</span></div>'; // FIX 2026-09-13 #394 引用块内嵌令牌转图
 }
 let inplaceDrafts = {};
 // v3.28.x：当前聚焦的互动卡片输入栏下标。联系人新消息触发整窗重渲染（renderWindow）会
@@ -2262,8 +2262,14 @@ appendTarget = null;
 batchRendering = false;
 renderStart = newStart;
 if (preNum > 0 && anchor) {
+// FIX 2026-09-13 #393（红米 K80 Chrome 等多机型「聊天/群聊滑动屏幕会弹」）：旧补偿式
+// beforeTop + anchor.offsetTop 读的是插入后首元素的 offsetTop＝插入高度 + .chat-body
+// padding-top，每批上翻固定把视口多推 14px＝视觉跳一下；锚定 auto（#316）只能兜住
+// 图片迟到解码那部分、兜不住这 14px（无头实测：Δsh=8903 补偿误差恒 -14px 视觉跳变）。
+// 改锚点前后差值＝纯插入高度，对齐群聊 loadEarlier 的 scrollHeight 差值口径（实测误差 0）。
+const anchorTopBefore = anchor.offsetTop;
 body.insertBefore(frag, anchor);
-body.scrollTop = beforeTop + anchor.offsetTop;
+body.scrollTop = beforeTop + (anchor.offsetTop - anchorTopBefore);
 } else {
 body.scrollTop = body.scrollHeight; // 原窗口为空，直接滚到底
 }
@@ -2833,7 +2839,8 @@ return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '"
 }).join('') + '</div>';
 }
 if (textPart && textPart.trim()) {
-inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(T(textPart)) + '</span>';
+// FIX 2026-09-13 #394 parts 文本走内嵌令牌助手（同 #385，令牌嵌正文中间不再直出）
+inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(T(textPart)) : escTxtBr(T(textPart))) + '</span>';
 }
 b.innerHTML = rec.quote
 ? quoteHtml(rec.quote, rec.qside) + inner
@@ -7508,7 +7515,8 @@ const isSticker = p.sub === 'sticker';
 return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '" src="' + attrEsc(p.v) + '" alt="' + (isSticker ? '表情' : '图片') + '" loading="lazy" decoding="async">';
 }).join('') + '</div>';
 }
-if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(textPart) + '</span>';
+// FIX 2026-09-13 #394 收藏消息文本走内嵌令牌助手（同 #385）
+if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(textPart) : escTxtBr(textPart)) + '</span>';
 b.innerHTML = inner;
 b.querySelectorAll('.msg-img-big').forEach(img => {
 img.addEventListener('click', (e) => {
@@ -7533,7 +7541,7 @@ fillVoiceBubble(b, f.text);
 b.style.padding = '6px';
 b.innerHTML = '<img class="msg-img" src="' + attrEsc(f.text) + '" alt="表情">';
 } else {
-b.innerHTML = '<span style="opacity:.85">' + escTxtBr(f.text) + '</span>';
+b.innerHTML = '<span style="opacity:.85">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(f.text) : escTxtBr(f.text)) + '</span>'; // FIX 2026-09-13 #394 收藏单条文本内嵌令牌转图
 }
 }
 if (f.mood && f.mood.length) {
