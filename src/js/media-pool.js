@@ -31,6 +31,21 @@
   if (!OK) return;
 
   const map = new Map();            // hash -> dataURL（已解析/已落池内容，渲染热缓存）
+  // FIX 2026-09-13 #387 令牌缺失负缓存——公用库被 #377 写回泄漏持久化令牌后，无池数据
+  // 的设备（公用库跨设备共享不带池键）令牌永远解不出图＝字卡库纯白图/面板空分组/发出去
+  // 全是坏图。这里记录「idbGet 确认缺失」的 hash：①mochiMediaTokenMissing 供媒体筛选端
+  // 剔除（不 send 白图卡）；②观察器给已渲染 img 打 media-tok-missing 占位（诚实可见，
+  // 不再纯白）。可自愈：idbGet 后续读到有效值即从 missing 除名（不学 #275 永久负缓存，
+  // 导入完整备份补回池键后下次渲染即恢复）。
+  const missing = new Set();        // hash -> true（idbGet 确认池缺失）
+  window.mochiMediaTokenMissing = function (s) { const m = TOKEN_RE.exec(s || ''); return !!(m && missing.has(m[1])); };
+  function markMissing(h) {
+    let nodes;
+    try { nodes = document.querySelectorAll('img[src="' + TOK + h + '"]'); } catch (e) { nodes = []; }
+    Array.prototype.forEach.call(nodes, function (el) {
+      try { el.classList.add('media-tok-missing'); if (!el.alt) el.alt = '图片缺失'; } catch (e2) {}
+    });
+  }
   const inflight = {};              // hash -> true（渲染侧单飞取回）
   let writeBuf = [];                // 待落池 [{k,v}]
   let flushT = null;
@@ -136,7 +151,8 @@
       // 原 `typeof v2 !== 'string'` 放行空串 → map 永久缓存 '' + img.src=''（解析成页面 URL）
       // ＝永久坏图且占位误报「网络不通」。改与「池缺失」同路：保持令牌原样交给 #186/#202 占位；
       // 日后导入完整备份补回池键，下次渲染经此处重读即自愈（不入 map 负缓存，缺数据可重试）。
-      if (typeof v2 !== 'string' || v2.indexOf('data:image/') !== 0) return;
+      if (typeof v2 !== 'string' || v2.indexOf('data:image/') !== 0) { missing.add(h); markMissing(h); return; }
+      missing.delete(h); // 后续读到有效值＝池已补回（导入完整备份等），解除剔除/占位
       map.set(h, v2);
       let nodes;
       try { nodes = document.querySelectorAll('img[src="' + TOK + h + '"]'); } catch (e) { nodes = []; }

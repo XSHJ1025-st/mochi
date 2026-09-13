@@ -806,6 +806,7 @@ box-shadow:0 4px 16px rgba(0,0,0,.18);
 #reply-guide-hint.show { opacity:1; transform:translate(-50%, 0); pointer-events:auto; }
 #reply-guide-hint .rgh-go { flex:none; font-weight:700; color:#f5c452; white-space:nowrap; }
 .reply-guide-note { padding:10px 14px 2px; }
+img.media-tok-missing { background: rgba(0,0,0,.06); min-width: 48px; min-height: 48px; object-fit: contain; opacity: .5; }
 :root {
 --widget-bg:#ffffff;
 --widget-border:rgba(0,0,0,.1);
@@ -9360,9 +9361,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789276674885">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.622</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 13:17<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789277883518">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.623</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 13:38<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10641,7 +10642,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.622</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.623</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10936,7 +10937,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.622</span>
+              <span class="lic-ver">v3.26.623</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -19327,6 +19328,15 @@ window.mochiMediaExpandAsync = function (s, cb) { try { cb(null); } catch (e) {}
 window.mochiMediaIsToken = function (s) { return typeof s === 'string' && TOKEN_RE.test(s); };
 if (!OK) return;
 const map = new Map();            // hash -> dataURL（已解析/已落池内容，渲染热缓存）
+const missing = new Set();        // hash -> true（idbGet 确认池缺失）
+window.mochiMediaTokenMissing = function (s) { const m = TOKEN_RE.exec(s || ''); return !!(m && missing.has(m[1])); };
+function markMissing(h) {
+let nodes;
+try { nodes = document.querySelectorAll('img[src="' + TOK + h + '"]'); } catch (e) { nodes = []; }
+Array.prototype.forEach.call(nodes, function (el) {
+try { el.classList.add('media-tok-missing'); if (!el.alt) el.alt = '图片缺失'; } catch (e2) {}
+});
+}
 const inflight = {};              // hash -> true（渲染侧单飞取回）
 let writeBuf = [];                // 待落池 [{k,v}]
 let flushT = null;
@@ -19413,7 +19423,8 @@ if (inflight[h]) return;
 inflight[h] = true;
 window.idbGet(FULL + h).then(function (v2) {
 delete inflight[h];
-if (typeof v2 !== 'string' || v2.indexOf('data:image/') !== 0) return;
+if (typeof v2 !== 'string' || v2.indexOf('data:image/') !== 0) { missing.add(h); markMissing(h); return; }
+missing.delete(h); // 后续读到有效值＝池已补回（导入完整备份等），解除剔除/占位
 map.set(h, v2);
 let nodes;
 try { nodes = document.querySelectorAll('img[src="' + TOK + h + '"]'); } catch (e) { nodes = []; }
@@ -40802,7 +40813,12 @@ window.getPokeGroups = function () {
 return (replyPoolGroups()['poke'] || []).slice();
 };
 function isMediaImg(c) {
-return typeof c === 'string' && (c.indexOf('data:image') === 0 || /^https?:\/\/[^\s"'<>]+$/i.test(c) || (c.indexOf('@@m:') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(c)));
+if (typeof c !== 'string') return false;
+if (c.indexOf('data:image') === 0 || /^https?:\/\/[^\s"'<>]+$/i.test(c)) return true;
+if (c.indexOf('@@m:') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) {
+return !(window.mochiMediaTokenMissing && window.mochiMediaTokenMissing(c));
+}
+return false;
 }
 window.getMediaCards = function (type) {
 maybeHydrateReplyPool();
@@ -40921,7 +40937,7 @@ const arr = (Array.isArray(cards) ? cards : [cards]).filter(c => typeof c === 's
 if (!arr.length || !group) return false;
 const isPub = scope === 'public';
 if (isPub) {
-const g = pubGroupsRaw();
+const g = buildGroupsFrom(pubStore().get(PUB_KEY));
 if (!g[type]) g[type] = [];
 let grp = g[type].find(p => p[0] === group);
 if (!grp) { grp = [group, []]; g[type].push(grp); }
@@ -45783,7 +45799,6 @@ if (!picked) return null;
 return { content: picked.content, group: grp.group, emoji: grp.emoji, rarity: picked.rarity };
 };
 window.triggerEmotionChain = function () {
-if (replySrcLocked()) return null;
 if (!enabled('mood')) return null;
 const out = [];
 const mood = window.getMoodCard();
@@ -90834,4 +90849,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzd4u9x -->
+<!-- __MOCHI_EOF__ mtzduqv2 -->

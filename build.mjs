@@ -1117,6 +1117,11 @@ const FIX_SENTINELS = [
   // ==== 2026-09-13 #386 信箱/朋友圈令牌乱码（用户复报：聊天已好、信里/朋友圈仍乱码，多机型）——同 #385 消费者边界思路：mail renderBody/feed inlineBody+图片网格 RE 补认 @@m:hash 渲内联图；来源侧 feed cardPool 补第三道令牌守卫+媒体池放行令牌卡；摘要/快照/通知剥离处补令牌→[图片]/[表情包] ====
   { name: '#386 信件正文渲染认媒体令牌（删则信箱信纸直出 @@m:hash 串）', file: 'js/mail.js', needle: '|@@m:[0-9a-f]{32})/g' },
   { name: '#386 朋友圈正文/图片网格渲染认媒体令牌（删则动态/评论直出 @@m:hash 串）', file: 'js/feed.js', needle: '|@@m:[0-9a-f]{32}|data:image' },
+  // ==== 2026-09-13 #387 公用库令牌写回泄漏（iPhone 17 Safari/自带浏览器：字卡库表情包纯白图+表情包面板空分组+联系人图片全乱码，多机型）——#377 令牌化内存缓存经 ccAppendCards 公用分支整包写回原始键 cc-groups-public，随公用库/备份传到无媒体池数据设备＝令牌永解不出图；堵口+负缓存剔除+缺失占位 ====
+  { name: '#387 ccAppendCards 公用分支改原始键现解析（删则令牌化缓存继续整包写回污染公用库）', file: 'js/chatcard.js', needle: 'const g = buildGroupsFrom(pubStore().get(PUB_KEY));' },
+  { name: '#387 isMediaImg 剔除池缺失令牌卡（删则无池设备继续发/显白图卡）', file: 'js/chatcard.js', needle: 'return !(window.mochiMediaTokenMissing && window.mochiMediaTokenMissing(c));' },
+  { name: '#387 观察器池缺失负缓存+占位打标（删则令牌白图不可辨且媒体筛选无法剔除）', file: 'js/media-pool.js', needle: 'missing.add(h); markMissing(h); return;' },
+  { name: '#387 令牌缺失占位样式（删则白图不可辨）', file: 'css/base.css', needle: 'img.media-tok-missing' },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');

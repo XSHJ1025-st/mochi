@@ -3031,7 +3031,14 @@
     // #377：补认媒体池令牌 @@m:hash——大库内存瘦身令牌化后（pubGroupsRaw），超大贴纸卡
     // 在回复池里以令牌形态存在，渲染端 media-pool 观察器会解回真图；不补认则令牌卡被
     // 本过滤器整个剔出表情包/图片池＝令牌化的卡再也不会被抽到（行为回退）
-    return typeof c === 'string' && (c.indexOf('data:image') === 0 || /^https?:\/\/[^\s"'<>]+$/i.test(c) || (c.indexOf('@@m:') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(c)));
+    if (typeof c !== 'string') return false;
+    if (c.indexOf('data:image') === 0 || /^https?:\/\/[^\s"'<>]+$/i.test(c)) return true;
+    if (c.indexOf('@@m:') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) {
+      // FIX 2026-09-13 #387 池里确认没有的令牌卡不再当媒体载荷（无池数据设备不再发/显白图卡；
+      // 导入完整备份补回池后 missing 解除自动恢复）
+      return !(window.mochiMediaTokenMissing && window.mochiMediaTokenMissing(c));
+    }
+    return false;
   }
   window.getMediaCards = function (type) {
     maybeHydrateReplyPool();
@@ -3181,7 +3188,11 @@
       if (!arr.length || !group) return false;
       const isPub = scope === 'public';
       if (isPub) {
-        const g = pubGroupsRaw();
+        // FIX 2026-09-13 #387 写回泄漏堵口——pubGroupsRaw() 是 #377 令牌化后的内存缓存，
+        // 整包 set(PUB_KEY) 会把全库令牌持久化进原始键，随公用库/备份传到无池数据设备
+        // ＝纯白图/空分组/乱码。改用原始键现解析（本路径低频，一次性 40MB parse 可接受），
+        // 写回的永远是原始数据；pubInvalidate 后下次回复池照常走令牌化瘦身。
+        const g = buildGroupsFrom(pubStore().get(PUB_KEY));
         if (!g[type]) g[type] = [];
         let grp = g[type].find(p => p[0] === group);
         if (!grp) { grp = [group, []]; g[type].push(grp); }

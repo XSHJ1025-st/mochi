@@ -1196,3 +1196,7 @@ html.mochi-cover-top .phone .statusbar {
 #reply-guide-hint .rgh-go { flex:none; font-weight:700; color:#f5c452; white-space:nowrap; }
 /* 回复设置页顶部「这些都是概率、可自行调」说明行（template.html 静态） */
 .reply-guide-note { padding:10px 14px 2px; }
+
+/* FIX 2026-09-13 #387 媒体池令牌缺数据占位（media-pool 观察器打标）——公用库跨设备共享
+   不带池键时令牌解不出图，纯白不可辨；置灰+占位尺寸诚实可见，导入完整备份后自动恢复 */
+img.media-tok-missing { background: rgba(0,0,0,.06); min-width: 48px; min-height: 48px; object-fit: contain; opacity: .5; }
