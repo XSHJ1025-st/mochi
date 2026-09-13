@@ -650,7 +650,7 @@ function normCell(r) {
 // FIX 2026-09-10 #283 语音型归一：裸 data:audio 文本与「|||@@m:令牌」（pass 令牌化后的无主
 // 名称形态）补 type='voice'，走语音气泡渲染（名称缺省「语音消息」），不再当纯文本直出
 if ((r.type === 'text' || !r.type) && typeof r.text === 'string' &&
-(r.text.indexOf('data:audio/') === 0 || (r.text.indexOf('|||') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(r.text.slice(3))))) { r.type = 'voice'; c = true; }
+(r.text.indexOf('data:audio/') === 0 || (r.text.indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(r.text)))) { r.type = 'voice'; c = true; }
     if (r.special === 'poke' && typeof r.text === 'string' && r.text.indexOf('&lt;svg class=&quot;st-ico&quot;') === 0) {
       const mm = r.text.match(/^(&lt;svg class=&quot;st-ico&quot;[\s\S]*?&lt;\/svg&gt;)([\s\S]*)$/);
       if (mm) { r.text = mm[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&') + mm[2]; c = true; }
@@ -1627,8 +1627,13 @@ a.addEventListener('error', () => { detachA(); stopChatVoice(); toast('语音播
 a.play().then(() => {}).catch(() => { detachA(); stopChatVoice(); toast('语音播放失败'); });
 }
 function voicePartsOf(text) {
-const p = String(text || '').split('|||');
-return { name: (p[0] || '语音消息').replace(/\.[^.]+$/, ''), src: p[1] || '' };
+// FIX 2026-09-13 #395 防御：裸令牌（无主形态漏切）/ 令牌被当名字时不得把令牌串显成名称
+const raw = String(text || '');
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(raw)) return { name: '语音消息', src: raw };
+const p = raw.split('|||');
+let name = (p[0] || '语音消息').replace(/\.[^.]+$/, '');
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(name)) name = '语音消息';
+return { name: name, src: p[1] || '' };
 }
 function fillVoiceBubble(b, text, prefixHtml) {
 const v = voicePartsOf(text);
@@ -2821,7 +2826,8 @@ if (window.viewChatImage) window.viewChatImage(rec.text);
 // 令牌缺失（池数据被误删/备份未带池键）、远程图断网/失效/混合内容拦截、dataURL 解码失败
 // 都不再是无声空白气泡；竞态防线（#186 E3 实证 404 抢跑观察器改写）由 1.5s 延时复核承担
 bindMediaFailPlaceholder(b);
-} else if (rec.type === 'voice') {
+} else if (rec.type === 'voice' || (String(rec.text || '').indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(String(rec.text || '')))) {
+// FIX 2026-09-13 #395 渲染侧补认「名称|||@@m:hash」令牌语音（存量消息归一化未跑完时首屏也不直出令牌串）
 b.style.padding = '8px 10px';
 b.style.background = '';
 b.style.border = '';

@@ -1159,6 +1159,10 @@ const FIX_SENTINELS = [
   { name: '#394 词典词条录入拒绝令牌串（删则令牌可再污染词典池）', file: 'js/default-cards.js', needle: 'mochiMediaIsToken(v))) return { ok: false' },
   { name: '#394 聊天 parts 文本走内嵌令牌助手（删则组合消息文本段直出令牌）', file: 'js/chat.js', needle: 'mochiInlineTextHtml(T(textPart))' },
   { name: '#394 群聊引用文本走内嵌令牌助手（删则群聊引用块直出令牌）', file: 'js/group-chat.js', needle: 'mochiInlineTextHtml(tRaw)' },
+  // ==== 2026-09-13 #395 语音条令牌乱码（用户实报「聊天里的语音条也会显示乱码」）——带名字的令牌语音「名称|||@@m:hash」在旧包/存量数据里 type 仍是 text（语音型归一化只认「以 ||| 开头」的无主形态，带名形态漏判）＝整串当纯文本直出；且 voicePartsOf 对裸令牌/令牌当名字会把令牌串显成名称 ====
+  { name: '#395 语音型归一化补认「名称|||令牌」形态（删则带名令牌语音消息继续当文本直出令牌串）', file: 'js/chat.js', needle: "r.text.indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(r.text)" },
+  { name: '#395 voicePartsOf 裸令牌防御（删则令牌串被显成语音名称）', file: 'js/chat.js', needle: 'mochiMediaIsToken(raw)) return { name:' },
+  { name: '#395 群聊语音分支令牌防御（删则群聊语音条显令牌串）', file: 'js/group-chat.js', needle: 'mochiMediaIsToken(_vraw));' },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');

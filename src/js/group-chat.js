@@ -615,14 +615,19 @@
       b.innerHTML = quoteStr + (rec.type === 'image'
         ? '<img class="msg-img msg-img-big" src="' + attrEsc(rec.text) + '" alt="图片" loading="lazy" decoding="async">'
         : '<img class="msg-img msg-img-sm" src="' + attrEsc(rec.text) + '" alt="表情" loading="lazy" decoding="async">');
-    } else if (rec.type === 'voice') {
+    } else if (rec.type === 'voice' || (String(rec.text || '').indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(String(rec.text || '')))) {
+      // FIX 2026-09-13 #395 群聊补认「名称|||@@m:hash」令牌语音（与单聊同口径，存量消息不再直出令牌串）
       b.style.padding = '8px 10px';
       b.style.background = '';
       b.style.border = '';
       b.style.boxShadow = '';
-      const vparts = String(rec.text || '').split('|||');
-      const vname = (vparts[0] || '语音消息').replace(/\.[^.]+$/, '');
-      const vsrc = vparts[1] || '';
+      // FIX 2026-09-13 #395 防御：裸令牌/令牌当名字不得显成名称（同 chat.js voicePartsOf）
+      const _vraw = String(rec.text || '');
+      const _vbare = !!(window.mochiMediaIsToken && window.mochiMediaIsToken(_vraw));
+      const vparts = _vbare ? [_vraw] : _vraw.split('|||');
+      let vname = (vparts[0] || '语音消息').replace(/\.[^.]+$/, '');
+      if (!_vbare && window.mochiMediaIsToken && window.mochiMediaIsToken(vname)) vname = '语音消息';
+      const vsrc = _vbare ? _vraw : (vparts[1] || '');
       b.innerHTML = quoteStr + '<div class="msg-voice" data-src="' + attrEsc(vsrc) + '">' +
         '<button class="msg-voice-play" title="播放">' +
         // 播放/暂停双图标：playing 时 CSS 切换显示（与 chat.js 聊天页语音气泡同款互动态）

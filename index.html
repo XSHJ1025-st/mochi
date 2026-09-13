@@ -9368,9 +9368,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789281146434">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.629</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 14:32<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789281229357">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.630</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 14:33<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10649,7 +10649,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.629</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.630</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10944,7 +10944,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.629</span>
+              <span class="lic-ver">v3.26.630</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -27579,7 +27579,7 @@ if (t !== r.text) { r.text = ICON_ENV + t; c = true; }
 }
 if ((r.type === 'text' || !r.type) && typeof r.text === 'string' && (r.text.indexOf('data:image/') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(r.text)))) { r.type = 'image'; c = true; }
 if ((r.type === 'text' || !r.type) && typeof r.text === 'string' &&
-(r.text.indexOf('data:audio/') === 0 || (r.text.indexOf('|||') === 0 && window.mochiMediaIsToken && window.mochiMediaIsToken(r.text.slice(3))))) { r.type = 'voice'; c = true; }
+(r.text.indexOf('data:audio/') === 0 || (r.text.indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(r.text)))) { r.type = 'voice'; c = true; }
 if (r.special === 'poke' && typeof r.text === 'string' && r.text.indexOf('&lt;svg class=&quot;st-ico&quot;') === 0) {
 const mm = r.text.match(/^(&lt;svg class=&quot;st-ico&quot;[\s\S]*?&lt;\/svg&gt;)([\s\S]*)$/);
 if (mm) { r.text = mm[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&') + mm[2]; c = true; }
@@ -28377,8 +28377,12 @@ a.addEventListener('error', () => { detachA(); stopChatVoice(); toast('语音播
 a.play().then(() => {}).catch(() => { detachA(); stopChatVoice(); toast('语音播放失败'); });
 }
 function voicePartsOf(text) {
-const p = String(text || '').split('|||');
-return { name: (p[0] || '语音消息').replace(/\.[^.]+$/, ''), src: p[1] || '' };
+const raw = String(text || '');
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(raw)) return { name: '语音消息', src: raw };
+const p = raw.split('|||');
+let name = (p[0] || '语音消息').replace(/\.[^.]+$/, '');
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(name)) name = '语音消息';
+return { name: name, src: p[1] || '' };
 }
 function fillVoiceBubble(b, text, prefixHtml) {
 const v = voicePartsOf(text);
@@ -29456,7 +29460,7 @@ if (window.viewChatImage) window.viewChatImage(rec.text);
 });
 }
 bindMediaFailPlaceholder(b);
-} else if (rec.type === 'voice') {
+} else if (rec.type === 'voice' || (String(rec.text || '').indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(String(rec.text || '')))) {
 b.style.padding = '8px 10px';
 b.style.background = '';
 b.style.border = '';
@@ -36143,14 +36147,17 @@ b.style.boxShadow = '';
 b.innerHTML = quoteStr + (rec.type === 'image'
 ? '<img class="msg-img msg-img-big" src="' + attrEsc(rec.text) + '" alt="图片" loading="lazy" decoding="async">'
 : '<img class="msg-img msg-img-sm" src="' + attrEsc(rec.text) + '" alt="表情" loading="lazy" decoding="async">');
-} else if (rec.type === 'voice') {
+} else if (rec.type === 'voice' || (String(rec.text || '').indexOf('|||') >= 0 && /@@m:[0-9a-f]{32}$/.test(String(rec.text || '')))) {
 b.style.padding = '8px 10px';
 b.style.background = '';
 b.style.border = '';
 b.style.boxShadow = '';
-const vparts = String(rec.text || '').split('|||');
-const vname = (vparts[0] || '语音消息').replace(/\.[^.]+$/, '');
-const vsrc = vparts[1] || '';
+const _vraw = String(rec.text || '');
+const _vbare = !!(window.mochiMediaIsToken && window.mochiMediaIsToken(_vraw));
+const vparts = _vbare ? [_vraw] : _vraw.split('|||');
+let vname = (vparts[0] || '语音消息').replace(/\.[^.]+$/, '');
+if (!_vbare && window.mochiMediaIsToken && window.mochiMediaIsToken(vname)) vname = '语音消息';
+const vsrc = _vbare ? _vraw : (vparts[1] || '');
 b.innerHTML = quoteStr + '<div class="msg-voice" data-src="' + attrEsc(vsrc) + '">' +
 '<button class="msg-voice-play" title="播放">' +
 '<svg class="voice-ico-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>' +
@@ -90920,4 +90927,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzfsojm -->
+<!-- __MOCHI_EOF__ mtzfugj1 -->
