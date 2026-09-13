@@ -171,6 +171,12 @@
     }
     actions.appendChild(state);
   }
+  // FIX 2026-09-13 #389：解锁态可能「晚到」——card-lock.js 走 xyStore 后，杀进程回滚的
+  // 解锁状态由 wrj 自愈链（mochi-wrj-heal）异步修回并补发 mochi-cardlock-open/-locked。
+  // 开屏锁卡此前只在首屏渲染一次，晚到的解锁会一直显示「输入密码解锁」假象，这里监听
+  // 两个状态事件整卡重渲染（setupCardLockCard 幂等，重复触发安全）。
+  document.addEventListener('mochi-cardlock-open', setupCardLockCard);
+  document.addEventListener('mochi-cardlock-locked', setupCardLockCard);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
   // 可选官方远程源：失败（离线/被墙/CORS）不阻塞，保留本地兜底；权威文案有变才强刷

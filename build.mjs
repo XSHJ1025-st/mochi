@@ -433,6 +433,8 @@ const FIX_SENTINELS = [
   { name: '开屏问答门设置行（template.html #applock-qa-en，防并行会话把入口改丢）', file: 'template.html', needle: 'id="applock-qa-en"' },
   { name: '#319 cardlock-state 进 migrateLegacy 排除清单（解锁状态全局根键不被迁进 default 并删根键，否则输对密码刷新后闸门仍全锁）', file: 'js/contacts.js', needle: "'cardlock-state'];" },
   { name: '#319 card-lock 存量自愈（被误迁进 default 的解锁状态启动时搬回根键，老用户不用重输密码）', file: 'js/card-lock.js', needle: "localStorage.getItem('xy-home-v2:default:cardlock-state')" },
+  { name: '#389 cardlock 解锁状态走 xyStore（写日志+IDB+每键标记+自愈链，修 Edge/荣耀杀进程回滚 localStorage 解锁态退回 locked→密码框重弹，多机型同因零机型分支）', file: 'js/card-lock.js', needle: "addEventListener('mochi-wrj-heal'" },
+  { name: '#389 开屏锁卡监听解锁状态事件重渲染（自愈晚到不再显示「输入密码解锁」假象）', file: 'js/clock.js', needle: "addEventListener('mochi-cardlock-open'" },
   { name: '#118 默认字卡三场景使用概率 overallFor（dc-overall-<chat/mail/feed> 未设置回退 dc-overall）', file: 'js/default-cards.js', needle: 'overallFor: gOS' },
   { name: '#118 默认字卡抽卡按场景读概率/开关 drawCards(a, scene)', file: 'js/default-cards.js', needle: 'function drawCards(a, scene)' },
   { name: '#118 写信混入默认字卡读写信场景概率（overallFor mail）', file: 'js/mail.js', needle: 'dcfg.overallFor' },
@@ -951,7 +953,8 @@ const FIX_SENTINELS = [
   { name: '#330 逐卡连发受回复条数最多上限·完整字卡连发≤reply-max（删则完整字卡一次刷 5 条＝超出联系人回复条数设置）', file: 'js/quote-spell.js', needle: 'if (want > rmax) want = rmax;' },
   { name: '#351a 逐卡连发不受条数限制·qs-noLimit 默认开（删则逐卡被 reply-max 收口＝默认玩法被限流；仅显式 0 才收口）', file: 'js/quote-spell.js', needle: "if (!one && c['qs-noLimit'] === 0) {" },
   { name: '#351b 撤回补发总开关·rc-en 闸门（删则关开关后撤回仍补发＝开关失效）', file: 'js/chat.js', needle: "if (c['rc-en'] !== 0 && hit(c['rc-refix'])) {" },
-  { name: '#310 qs-cc 旧默认 1→0 迁移（删则存量桌面普通字卡继续被抽去拼字截断＝用户报障回流）', file: 'js/reply-settings.js', needle: "s.set('reply-qs-cc', '0'); changed = true; }" },
+  // #310 旧默认 1→0 迁移已被 #388 反向取代（qs-cc 默认改回 1、存量迁移 0→1 标记升 2，见下方 #388 两条）——哨兵锚点同步更新
+  { name: '#388 qs-cc 存量反向迁移写值 0→1（删则被 #310 迁移成 0 的桌面回不到默认开＝用户点名需求回退）', file: 'js/reply-settings.js', needle: "s.set('reply-qs-cc', '1'); changed = true; }" },
   { name: '#350 逐卡连发每条气泡挂「词典逐卡连发」tag（删则逐卡与单气泡 tag 不可区分＝用户点名的新 tag 丢失）', file: 'js/chat.js', needle: "silent: si > 0 ? true : silent,\ntag: '词典逐卡连发'," },
   // ==== 2026-09-11 #317 梦角自由造句（梦角语料抽卡→截断几字重造句→入库自定义字卡「梦角自由造句」分类）====
   { name: '#317 梦角自由造句抽句门·mjf-en/mjf-prob 生效（删则开关概率失效，梦角永不造句）', file: 'js/dream-free.js', needle: "if (!c || c['mjf-en'] !== 1) return null;" },
@@ -1122,6 +1125,10 @@ const FIX_SENTINELS = [
   { name: '#387 isMediaImg 剔除池缺失令牌卡（删则无池设备继续发/显白图卡）', file: 'js/chatcard.js', needle: 'return !(window.mochiMediaTokenMissing && window.mochiMediaTokenMissing(c));' },
   { name: '#387 观察器池缺失负缓存+占位打标（删则令牌白图不可辨且媒体筛选无法剔除）', file: 'js/media-pool.js', needle: 'missing.add(h); markMissing(h); return;' },
   { name: '#387 令牌缺失占位样式（删则白图不可辨）', file: 'css/base.css', needle: 'img.media-tok-missing' },
+  // ==== 2026-09-13 #388 回复设置 toast 静默丢失 + 混用自定义字卡默认改回开（用户实报：词典拼字组开关改了没「已保存」提示）——cc-toast 全站懒创建唯独 reply-settings.js 只查不建＝元素不存在静默 return；qs-cc 默认 0→1（#310 存量反向迁移标记 1→2） ====
+  { name: '#388 reply-settings toast 懒创建兜底（删则直达回复设置页所有开关「已保存」提示永不弹）', file: 'js/reply-settings.js', needle: 'function ccToastEnsure() {' },
+  { name: '#388 qs-cc 默认改回 1（改回 0 则用户点名需求复发）', file: 'js/reply-settings.js', needle: "'qs-en': 1, 'qs-prob': 25, 'qs-cc': 1," },
+  { name: '#388 qs-cc 存量反向迁移标记升级 2（删则被 #310 迁移成 0 的桌面回不到默认开）', file: 'js/reply-settings.js', needle: "s.set('reply-qs-cc-migrated', '2');" },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');

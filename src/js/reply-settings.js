@@ -20,11 +20,12 @@
     'csp-cust': 50,
     // v3.28.x #298：词典拼字——qs-en 总开关、qs-prob 拼字概率（%）、qs-cc 混用自定义字卡
     //（1=字卡池+词典语录合并抽句；0=只用词典语录）。逻辑与词库数据见 quote-spell.js +
-    // default-cards-data.js「词典」分类；chat.js replyOnce 消费
-    // v3.28.x #310：qs-cc 默认改 0——用户反馈普通字卡回复被抽去拼字截断，混用池改默认关闭
-    //（存量已写盘的旧值 1 由文件尾 migrateQsCcOld 一次性迁移为 0，只动从未自改过的默认值）；
+    // v3.40.x #388：qs-cc 默认改回 1（用户点名「混用自定义字卡需要默认开启」）——
+    // v3.28.x #310 曾默认改 0 并把存量迁移成 0；本轮 migrateQsCcOld 反向迁移把经历过
+    // 上轮迁移（标记=1）且当前值为 0 的桌面改回 1（上轮迁移后自行关闭的无法区分，会被
+    // 一并打开一次，同 #310 时的取舍）；
     // qs-one 单气泡拼字（默认开）：命中拼字后 50% 掷成单气泡形态（词间空格一张卡+「词典拼字」tag）
-    'qs-en': 1, 'qs-prob': 25, 'qs-cc': 0, 'qs-one': 1, 'qs-multi': 1, 'qs-noLimit': 1,
+    'qs-en': 1, 'qs-prob': 25, 'qs-cc': 1, 'qs-one': 1, 'qs-multi': 1, 'qs-noLimit': 1,
     // v3.28.x #317：梦角自由造句——mjf-en 总开关（默认关=用户点名「可自由选择开关」）、
     // mjf-prob 触发概率（%）：梦角说话按概率「截断某几个字重新造句」，新句自动存进
     // 自定义聊天字卡新分类「梦角自由造句」（dream-free.js，chat.js replyOnce 消费）
@@ -328,9 +329,21 @@
     'qs-en': '词典拼字', 'qs-cc': '混用自定义字卡', 'qs-one': '单气泡拼字', 'qs-multi': '多回复逐卡连发',
     'qs-noLimit': '逐卡连发不受条数限制', 'mjf-en': '梦角自由造句', 'rc-en': '撤回后补发消息'
   };
+  // #388：cc-toast 元素全站懒创建（template.html 无静态元素，chat.js/device.js 等 20+ 文件
+  //   都是「查不到就 createElement 补挂 body」）——本文件此前只查不建，用户直达回复设置页时
+  //   元素不存在 → toastSaved 静默 return → 所有开关「已保存」提示永远不弹（用户实报）。
+  //   补同款懒创建兜底，本文件全部 toast 出口统一走它。
+  function ccToastEnsure() {
+    let d = null;
+    try {
+      d = document.getElementById('cc-toast');
+      if (!d) { d = document.createElement('div'); d.id = 'cc-toast'; document.body.appendChild(d); }
+    } catch (e) { return null; }
+    return d;
+  }
   function toastSaved(label, on) {
     try {
-      const d = document.getElementById('cc-toast');
+      const d = ccToastEnsure();
       if (!d) return;
       d.textContent = '已保存：' + label + '（' + (on ? '开' : '关') + '）';
       d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show';
@@ -426,7 +439,7 @@
   if (asEnEl) {
     asEnEl.addEventListener('change', () => {
       if (!asEnEl.checked) {
-        const d = document.getElementById('cc-toast');
+        const d = ccToastEnsure();
         if (d) { d.textContent = '主动发送已关闭，TA 将不再主动发消息'; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 2600); }
       }
     });
@@ -436,7 +449,7 @@
   if (dndEl) {
     dndEl.addEventListener('change', () => {
       if (dndEl.checked) {
-        const d = document.getElementById('cc-toast');
+        const d = ccToastEnsure();
         if (d) { d.textContent = '免打扰已开启，TA 主动发送会大幅减弱（最长 3 小时一次）'; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 3200); }
       }
     });
@@ -456,7 +469,7 @@
           try { st.set('reply-mjf-probe', ''); } catch (e) {}
         }
       } catch (e) { okStore = false; }
-      const d = document.getElementById('cc-toast');
+      const d = ccToastEnsure();
       if (!d) return;
       const show = (msg) => { d.textContent = msg; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 3200); };
       if (mjfEl.checked && okStore) show('梦角自由造句已开启：TA 说话将按概率截字重造句（造出的句子进字卡库「梦角自由造句」分类）');
@@ -492,7 +505,7 @@
     } catch (e) {}
   }
   function toastReply(msg, ms) {
-    const d = document.getElementById('cc-toast');
+    const d = ccToastEnsure();
     if (d) { d.textContent = msg; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, ms || 2000); }
   }
   const saveBtn = document.getElementById('reply-save-btn');
@@ -635,11 +648,12 @@
     } catch (e) {}
   }
   migrateMailMaxOld();
-  // v3.28.x #310：词典拼字「混用自定义字卡」旧默认 1 → 0 的旧值迁移——用户反馈普通字卡
-  // 回复被抽去拼字截断发成多条，该键上线时默认 1 已随 #298 写进存量桌面存储；这里扫描
-  // 全部桌面联系人，仍为 1（从未自改过）的一律改写为 0（只用词典语录抽句）。自改开启
-  // 写的也是 1、与迁移值无法区分，故只跑一次：迁移完成写 reply-qs-cc-migrated 标记，
-  // 之后用户再自行开启不再被纠正。
+  // v3.40.x #388：词典拼字「混用自定义字卡」默认改回 1 的反向迁移——v3.28.x #310 曾把
+  // 默认 1→0 并把经历过上轮迁移（reply-qs-cc-migrated=1）且值为 1 的桌面改写为 0；现在
+  // 用户点名「混用自定义字卡需要默认开启」，这里反向补迁：标记=1 且当前值为 0 的桌面改回
+  // 1，标记升级为 2（防重复跑；新装设备从未经历上轮迁移、标记缺失，默认 1 直接生效不进本
+  // 函数分支）。上轮迁移后自行关闭的与被迁移成 0 的无法区分，会被一并打开一次（同 #310
+  // 当时的取舍）；此后用户再自行关闭（标记=2）不再被纠正。
   function migrateQsCcOld() {
     try {
       if (!window.getContacts || !window.storeFor) return;
@@ -650,13 +664,13 @@
         try {
           const s = window.storeFor(cid);
           if (!s) return;
-          if (String(s.get('reply-qs-cc-migrated')) === '1') return;
-          if (String(s.get('reply-qs-cc')) === '1') { s.set('reply-qs-cc', '0'); changed = true; }
-          s.set('reply-qs-cc-migrated', '1');
+          if (String(s.get('reply-qs-cc-migrated')) !== '1') return;
+          if (String(s.get('reply-qs-cc')) === '0') { s.set('reply-qs-cc', '1'); changed = true; }
+          s.set('reply-qs-cc-migrated', '2');
         } catch (e) {}
       });
       if (changed) {
-        try { if (window.console && console.log) console.log('[reply-settings] 已迁移词典拼字混用自定义字卡旧默认 1→0'); } catch (e) {}
+        try { if (window.console && console.log) console.log('[reply-settings] 已反向迁移词典拼字混用自定义字卡 0→1（#310 存量补迁，#388）'); } catch (e) {}
       }
     } catch (e) {}
   }

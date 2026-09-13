@@ -9173,6 +9173,11 @@ transition-duration: .01ms !important;
           <div class="splash-alert-t">转载署名 · 严禁倒卖</div>
           <p><strong>二传、分享本站链接必须标注作者署名：小红书 @言序（1842523578），禁止删除或修改。</strong>严禁冒为自己制作、删除篡改署名，或以任何形式收费倒卖本站链接、安装包——本站完全免费，收费即诈骗。如果你是花钱买来的链接：你被骗了，请拒付退款并举报卖家。</p>
         </div>
+        <!-- v3.32.x：浏览器兼容提示置顶卡——安卓自带默认浏览器兼容问题多，建议 Chrome/Edge；静态 DOM（tag 'b' 非数字，与 clock.js 的 1/2/3('s') 认领不冲突），在线 notice.json 覆盖只改公告列表，不影响此处 -->
+        <div class="splash-alert" data-anti-scam="b">
+          <div class="splash-alert-t">浏览器兼容提示</div>
+          <p><strong>安卓手机自带的默认浏览器（各品牌自带浏览器）兼容问题较多，本站建议使用 Chrome、Edge 等主流浏览器打开。</strong>如果你在自带浏览器上遇到显示异常、功能失灵、数据丢失等问题，请先换 Chrome 或 Edge 试试——很多问题换了浏览器就没有了。</p>
+        </div>
         <div class="splash-notice-title">Mochi字卡 · 开屏说明</div>
         <div class="splash-notice-sub">（请认真阅读）</div>
         <div class="splash-notice-list">
@@ -9361,9 +9366,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789277883518">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.623</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 13:38<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789279107649">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.624</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 13:58<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10642,7 +10647,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.623</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.624</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10937,7 +10942,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.623</span>
+              <span class="lic-ver">v3.26.624</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -11502,7 +11507,7 @@ transition-duration: .01ms !important;
             <!-- #370：词典拼字链路自检——五道闸门（二级锁/词典分类/词典聊天使用/总开关/概率/抽卡池）
                  任一被关都是零提示零 tag，这行把每道闸实时状态摆出来，任何机型一眼看到卡在哪 -->
             <div class="gs-sub" id="qs-diag" style="color:var(--muted,#888)">链路自检中…</div>
-            <div class="gs-sub">开启后联系人回复按「拼字概率」随机变成拼字：从词典（系统预设字卡→词典，语录/词库/常用词全部分组都可抽，可逐张关闭）抽字卡整卡，效果举例：命中拼字时 TA 会连着发几条词典里的短句（如「想你了」「晚安哦」），像打字很快连着发消息一样。<br>发送形态：单气泡拼字为主，「多回复逐卡连发」开着时每次命中另按 20% 小概率变成逐条连发；「多回复逐卡连发」关＝不能连发（只发单气泡拼字）。<br>· 「单气泡拼字」＝几张字卡用空格拼成【一条】消息发在一个气泡里（如「今天也要好好爱自己 晚安」），气泡下 tag 是「词典」（全是长句时）或「词典拼字」（含短卡时）；<br>· 「多回复逐卡连发」＝每张字卡单独一条气泡一条一条发出来，每条气泡下 tag 是「词典逐卡连发」；连发条数跟随上方「每条消息使用多字卡回复」的最少/最多条数（默认 2~5 条）；<br>· 「逐卡连发不受条数限制」默认开＝连发条数不受「回复条数最多」约束（想连发 5 条就发 5 条）；关掉＝连发最多不超过「回复条数最多」（默认 2 条）。<br>两个形态都能在没开「多字卡回复」的情况下触发；两个形态开关都关时兜底发单气泡拼字。开启「混用自定义字卡」时你的字卡库文本也会进抽卡池（可能把你的普通字卡抽去拼字，默认关）。概率 0 = 不触发</div>
+            <div class="gs-sub">开启后联系人回复按「拼字概率」随机变成拼字：从词典（系统预设字卡→词典，语录/词库/常用词全部分组都可抽，可逐张关闭）抽字卡整卡，效果举例：命中拼字时 TA 会连着发几条词典里的短句（如「想你了」「晚安哦」），像打字很快连着发消息一样。<br>发送形态：单气泡拼字为主，「多回复逐卡连发」开着时每次命中另按 20% 小概率变成逐条连发；「多回复逐卡连发」关＝不能连发（只发单气泡拼字）。<br>· 「单气泡拼字」＝几张字卡用空格拼成【一条】消息发在一个气泡里（如「今天也要好好爱自己 晚安」），气泡下 tag 是「词典」（全是长句时）或「词典拼字」（含短卡时）；<br>· 「多回复逐卡连发」＝每张字卡单独一条气泡一条一条发出来，每条气泡下 tag 是「词典逐卡连发」；连发条数跟随上方「每条消息使用多字卡回复」的最少/最多条数（默认 2~5 条）；<br>· 「逐卡连发不受条数限制」默认开＝连发条数不受「回复条数最多」约束（想连发 5 条就发 5 条）；关掉＝连发最多不超过「回复条数最多」（默认 2 条）。<br>两个形态都能在没开「多字卡回复」的情况下触发；两个形态开关都关时兜底发单气泡拼字。开启「混用自定义字卡」时你的字卡库文本也会进抽卡池（可能把你的普通字卡抽去拼字，默认开）。概率 0 = 不触发</div>
           </div>
           <div class="gs-title">梦角自由造句（截字重造句）</div>
           <div class="set-group glass">
@@ -19279,6 +19284,8 @@ getList: function () { return qaList(); }
 } catch (__e) { try { console.error("[JS] applock.js", __e && __e.message || __e); } catch (x) {} if (window.__jsErrors) window.__jsErrors.push(String(__e && __e.message || __e)); } })();
 (function () { try {
 (function () {
+const GNS = 'xy-home-v2';
+const STATE_SHORT = 'cardlock-state';
 const LS_KEY = 'xy-home-v2:cardlock-state'; // 'locked' | 'open'
 const PW_HASH = '4240701628';
 function fnv1a(s) {
@@ -19286,24 +19293,46 @@ let h = 0x811c9dc5;
 for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
 return String(h >>> 0);
 }
-function isOpen() {
-try { return localStorage.getItem(LS_KEY) === 'open'; } catch (e) { return false; }
+function stGet() {
+try {
+if (window.xyStore) {
+const v = window.xyStore(GNS).get(STATE_SHORT);
+if (v !== null && v !== undefined) return v;
 }
+} catch (e) {}
+try { return localStorage.getItem(LS_KEY); } catch (e) { return null; }
+}
+function stSet(v) {
+try { if (window.xyStore) { window.xyStore(GNS).set(STATE_SHORT, v); return; } } catch (e) {}
+try { localStorage.setItem(LS_KEY, v); } catch (e) {}
+}
+function isOpen() { try { return stGet() === 'open'; } catch (e) { return false; } }
 (function healMigrated() {
 try {
 if (localStorage.getItem(LS_KEY)) return;
 const moved = localStorage.getItem('xy-home-v2:default:cardlock-state');
-if (moved === 'open') localStorage.setItem(LS_KEY, 'open');
+if (moved === 'open') stSet('open');
 } catch (e) {}
 })();
+let lastOpen = isOpen();
 window.cardLockOpen = isOpen;
+document.addEventListener('mochi-wrj-heal', function () {
+try {
+const open = isOpen();
+if (open !== lastOpen) {
+lastOpen = open;
+document.dispatchEvent(new Event(open ? 'mochi-cardlock-open' : 'mochi-cardlock-locked'));
+}
+} catch (e) {}
+});
 let fails = 0, failUntil = 0;
 window.cardLockTryUnlock = function (pw) {
 const now = Date.now();
 if (now < failUntil) return { ok: false, msg: '尝试太频繁，请 ' + Math.ceil((failUntil - now) / 1000) + ' 秒后再试' };
 if (fnv1a('mochi#' + String(pw == null ? '' : pw)) === PW_HASH) {
 fails = 0;
-try { localStorage.setItem(LS_KEY, 'open'); } catch (e) {}
+stSet('open');
+lastOpen = true;
 document.dispatchEvent(new Event('mochi-cardlock-open'));
 return { ok: true };
 }
@@ -19312,7 +19341,8 @@ if (fails >= 5) { failUntil = now + 60000; fails = 0; return { ok: false, msg: '
 return { ok: false, msg: '密码不对（还剩 ' + (5 - fails) + ' 次机会）' };
 };
 window.cardLockRelock = function () {
-try { localStorage.setItem(LS_KEY, 'locked'); } catch (e) {}
+stSet('locked');
+lastOpen = false;
 document.dispatchEvent(new Event('mochi-cardlock-locked'));
 };
 })();
@@ -19746,6 +19776,8 @@ actions.appendChild(unlock);
 }
 actions.appendChild(state);
 }
+document.addEventListener('mochi-cardlock-open', setupCardLockCard);
+document.addEventListener('mochi-cardlock-locked', setupCardLockCard);
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
 else run();
 fetch(OFFICIAL_NOTICE, { cache: 'no-store' })
@@ -43161,7 +43193,7 @@ const DEFAULTS = {
 'rc-prob': 25, 'rc-refix': 35, 'rc-en': 1, 'cf-prob': 20,
 'py-en': 1, 'py-prob': 50, 'py-min': 2, 'py-max': 5,
 'csp-cust': 50,
-'qs-en': 1, 'qs-prob': 25, 'qs-cc': 0, 'qs-one': 1, 'qs-multi': 1, 'qs-noLimit': 1,
+'qs-en': 1, 'qs-prob': 25, 'qs-cc': 1, 'qs-one': 1, 'qs-multi': 1, 'qs-noLimit': 1,
 'mjf-en': 0, 'mjf-prob': 20, 'mjf-style': 1,
 'mjf-pub': 80,
 'as-en': 1, 'as-prob': 30, 'as-min': 5, 'as-max': 10,
@@ -43363,9 +43395,17 @@ const TOGGLE_NAMES = {
 'qs-en': '词典拼字', 'qs-cc': '混用自定义字卡', 'qs-one': '单气泡拼字', 'qs-multi': '多回复逐卡连发',
 'qs-noLimit': '逐卡连发不受条数限制', 'mjf-en': '梦角自由造句', 'rc-en': '撤回后补发消息'
 };
+function ccToastEnsure() {
+let d = null;
+try {
+d = document.getElementById('cc-toast');
+if (!d) { d = document.createElement('div'); d.id = 'cc-toast'; document.body.appendChild(d); }
+} catch (e) { return null; }
+return d;
+}
 function toastSaved(label, on) {
 try {
-const d = document.getElementById('cc-toast');
+const d = ccToastEnsure();
 if (!d) return;
 d.textContent = '已保存：' + label + '（' + (on ? '开' : '关') + '）';
 d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show';
@@ -43445,7 +43485,7 @@ const asEnEl = document.getElementById('as-en');
 if (asEnEl) {
 asEnEl.addEventListener('change', () => {
 if (!asEnEl.checked) {
-const d = document.getElementById('cc-toast');
+const d = ccToastEnsure();
 if (d) { d.textContent = '主动发送已关闭，TA 将不再主动发消息'; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 2600); }
 }
 });
@@ -43454,7 +43494,7 @@ const dndEl = document.getElementById('dnd-en');
 if (dndEl) {
 dndEl.addEventListener('change', () => {
 if (dndEl.checked) {
-const d = document.getElementById('cc-toast');
+const d = ccToastEnsure();
 if (d) { d.textContent = '免打扰已开启，TA 主动发送会大幅减弱（最长 3 小时一次）'; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 3200); }
 }
 });
@@ -43472,7 +43512,7 @@ okStore = st.get('reply-mjf-probe') === probe;
 try { st.set('reply-mjf-probe', ''); } catch (e) {}
 }
 } catch (e) { okStore = false; }
-const d = document.getElementById('cc-toast');
+const d = ccToastEnsure();
 if (!d) return;
 const show = (msg) => { d.textContent = msg; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, 3200); };
 if (mjfEl.checked && okStore) show('梦角自由造句已开启：TA 说话将按概率截字重造句（造出的句子进字卡库「梦角自由造句」分类）');
@@ -43502,7 +43542,7 @@ if (el) window.saveReplyCfg(k, el.checked ? 1 : 0);
 } catch (e) {}
 }
 function toastReply(msg, ms) {
-const d = document.getElementById('cc-toast');
+const d = ccToastEnsure();
 if (d) { d.textContent = msg; d.className = 'cc-toast'; void d.offsetWidth; d.className = 'cc-toast show'; clearTimeout(d._timer); d._timer = setTimeout(() => { d.className = 'cc-toast'; }, ms || 2000); }
 }
 const saveBtn = document.getElementById('reply-save-btn');
@@ -43631,13 +43671,13 @@ cids.forEach(cid => {
 try {
 const s = window.storeFor(cid);
 if (!s) return;
-if (String(s.get('reply-qs-cc-migrated')) === '1') return;
-if (String(s.get('reply-qs-cc')) === '1') { s.set('reply-qs-cc', '0'); changed = true; }
-s.set('reply-qs-cc-migrated', '1');
+if (String(s.get('reply-qs-cc-migrated')) !== '1') return;
+if (String(s.get('reply-qs-cc')) === '0') { s.set('reply-qs-cc', '1'); changed = true; }
+s.set('reply-qs-cc-migrated', '2');
 } catch (e) {}
 });
 if (changed) {
-try { if (window.console && console.log) console.log('[reply-settings] 已迁移词典拼字混用自定义字卡旧默认 1→0'); } catch (e) {}
+try { if (window.console && console.log) console.log('[reply-settings] 已反向迁移词典拼字混用自定义字卡 0→1（#310 存量补迁，#388）'); } catch (e) {}
 }
 } catch (e) {}
 }
@@ -90849,4 +90889,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzduqv2 -->
+<!-- __MOCHI_EOF__ mtzekzep -->

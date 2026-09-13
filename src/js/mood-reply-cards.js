@@ -188,8 +188,8 @@
   // ---- 触发链：情绪→心意→意图（星言 genReply 的 Step I 对应）----
   // 返回 { type:'mood'|'heart'|'intent', content, meta } 或 null
   window.triggerEmotionChain = function () {
-    // #365 #319 锁定补口：情绪/心意/意图链同属系统预设字卡——未解锁时整链不触发
-    if (replySrcLocked()) return null;
+    // 需求：情绪字卡 tag 不受二级密码解锁系统字卡影响——未解锁时情绪/心意/意图链
+    // 照常触发，气泡下方 tag 与正文都显示（不再走 #365 的 replySrcLocked 锁闸）
     // v3.6.x：总开关关闭时整链停发——防御存量状态（mh-mood=0 而 mh-heart/intent
     //   仍是 1/空 的旧数据，光靠写键兜不住已存的关闭态）
     if (!enabled('mood')) return null;
