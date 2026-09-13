@@ -303,6 +303,53 @@ text-decoration:underline; cursor:pointer; -webkit-tap-highlight-color:transpare
 }
 .splash-force-enter:active { opacity:.6; }
 .splash-force-enter[hidden] { display:none; }
+.splash-mandatory {
+position:absolute; inset:0; z-index:20;
+background:var(--card-bg);
+display:flex; flex-direction:column;
+box-sizing:border-box;
+padding:22px 18px calc(22px + var(--mochi-safe-bottom,env(safe-area-inset-bottom,0px)));
+}
+.splash-mandatory[hidden] { display:none; }
+.splash-mandatory-scroll {
+flex:1; min-height:0; width:min(322px, 100%); margin:0 auto;
+overflow-y:auto; box-sizing:border-box; padding:4px 2px 16px;
+scrollbar-width:none; -ms-overflow-style:none;
+}
+.splash-mandatory-scroll::-webkit-scrollbar { display:none; }
+.splash-mandatory-head { text-align:center; margin-bottom:16px; }
+.splash-mandatory-title { font-size:15px; font-weight:800; color:var(--ink); letter-spacing:1.5px; }
+.splash-mandatory-sub { margin-top:6px; font-size:10.5px; font-weight:600; color:var(--muted); letter-spacing:1px; line-height:1.6; }
+.splash-mandatory-card {
+margin-bottom:14px; padding:13px 15px 14px;
+background:var(--sp-soft); border-left:3px solid var(--sp-ink); border-radius:10px;
+animation:splash-fade-up .5s ease backwards;
+}
+.splash-mandatory-date { font-size:10px; font-weight:700; color:var(--hint-ink); letter-spacing:1px; margin-bottom:6px; }
+.splash-mandatory-h { font-size:13.5px; font-weight:800; color:var(--ink); letter-spacing:.5px; margin-bottom:9px; }
+.splash-mandatory-body p { font-size:12px; line-height:1.85; color:var(--soft-ink); }
+.splash-mandatory-body p + p { margin-top:6px; }
+.splash-mandatory-body .mnum { padding-left:14px; position:relative; font-weight:700; color:var(--ink); }
+.splash-mandatory-body .mnum::before { content:"·"; position:absolute; left:3px; top:0; color:var(--sp-ink); font-weight:800; }
+.splash-mandatory-body .mtag { text-align:right; font-size:10.5px; color:var(--hint-ink); margin-top:10px; }
+.splash-mandatory-end { text-align:center; font-size:11px; color:var(--hint-ink); letter-spacing:2px; padding:2px 0 4px; }
+.splash-mandatory-foot {
+width:min(322px, 100%); margin:0 auto; box-sizing:border-box;
+display:flex; flex-direction:column; align-items:center;
+padding:12px 18px 0;
+}
+.splash-mandatory-hint { margin-bottom:12px; font-size:11px; color:var(--hint-ink); letter-spacing:1px; }
+.splash-mandatory-hint[hidden] { display:none; }
+.splash-mandatory-enter {
+display:inline-block; padding:12px 34px;
+background:var(--btn-bg); color:var(--btn-ink); font-size:13px; font-weight:700;
+border-radius:99px; letter-spacing:2px; cursor:pointer;
+-webkit-tap-highlight-color:transparent; user-select:none;
+box-shadow:0 3px 10px rgba(0,0,0,.12);
+transition:opacity .35s ease, transform .12s ease;
+}
+.splash-mandatory-enter:active { opacity:.75; transform:scale(.97); }
+.splash-mandatory-enter.is-disabled { opacity:.3; box-shadow:none; pointer-events:none; }
 @keyframes splash-pop {
 0% { transform:scale(.8); opacity:0; }
 100% { transform:scale(1); opacity:1; }
@@ -1538,6 +1585,7 @@ font-size:11px; line-height:1;
 .msg-parts-imgs.multi { flex-wrap:wrap; }
 .msg-parts-imgs.multi .msg-img { width:70px; height:70px; object-fit:cover; }
 .msg-parts-imgs.multi .msg-img-big { width:110px; height:110px; object-fit:cover; }
+.msg-inline-tok { max-width:80px; max-height:80px; height:auto; border-radius:8px; vertical-align:middle; object-fit:contain; margin:0 2px; }
 .chat-search { height:auto; max-height:60%; }
 .chat-search[hidden] { display:none; }
 .chat-search-new {
@@ -9286,9 +9334,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789213156547">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.617</b></span>
-        <span class="sv-deploy">部署于 2026-09-12 19:39<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789267703404">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.618</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 10:48<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -9302,6 +9350,63 @@ transition-duration: .01ms !important;
       <!-- v3.26.x：数据加载超 12 秒仍未就绪时的逃生口（clock.js 控制显隐，默认 hidden）；
            点此进入会提示「数据仍在加载，部分内容可能暂时看不见」，避免静默放行误入空数据 -->
       <div class="splash-force-enter" id="splash-force-enter" hidden>仍要进入</div>
+    </div>
+    <!-- v3.26.x：点击进入后强制观看公告——每次点「我已阅读并知晓」都会先弹这一页（作者道别公告
+         二传二改 / 月底停更 / 二级密码），必须把整页滑到底、点【我已阅读并确认进入】才能真正进入；
+         门控逻辑在 clock.js（mandBottom 未到底时按钮 is-disabled 不可点），不可删除或绕过 -->
+    <div class="splash-mandatory" id="splash-mandatory" hidden>
+      <div class="splash-mandatory-scroll" id="splash-mandatory-scroll">
+        <div class="splash-mandatory-head">
+          <div class="splash-mandatory-title">进入前 · 作者必读公告</div>
+          <div class="splash-mandatory-sub">以下三条为作者公告，请逐条阅读（滑到底部后可确认进入）</div>
+        </div>
+        <div class="splash-mandatory-card">
+          <div class="splash-mandatory-date">2026.09.12</div>
+          <div class="splash-mandatory-h">关于二传和二改</div>
+          <div class="splash-mandatory-body">
+            <p>可以二传、二改，只有三点要求：</p>
+            <p class="mnum">一、署名</p>
+            <p class="mnum">二、不要转发密码</p>
+            <p class="mnum">三、二改之后如果要公开，请不要公开内置字卡</p>
+            <p>就这些，谢谢尊重。</p>
+            <p class="mtag">—— 算是道别公告</p>
+          </div>
+        </div>
+        <div class="splash-mandatory-card">
+          <div class="splash-mandatory-date">2026.09.12</div>
+          <div class="splash-mandatory-h">月底停更，说点心里话</div>
+          <div class="splash-mandatory-body">
+            <p>先说谢谢。</p>
+            <p>这个字卡从做出来到现在，用过的人、说过谢谢的人，我都记着。这不是客套。</p>
+            <p>有的人认真谢过，有的人只是取了东西就走，我心里有数。</p>
+            <p>网站是我一个人做的，最开始是给自己做的。每天维护的时间，全是我自己的钱和自己的精力，从开始到现在都是这样。</p>
+            <p>最近这段时间，每天要花大量时间回同样的问题、处理别人报的设备bug，我的作息已经乱了，最开始做这件事的劲头也耗完了。</p>
+            <p>我没有办法再继续无偿做下去。所以月底之后：</p>
+            <p>网站依旧是开源和免费的，代码可以自己拿去改。</p>
+            <p>网站不再维护和更新，要更新只按我自己手机来。</p>
+            <p>群解散，我不再帮人看 bug。</p>
+            <p>还没处理完的，月底前我会做完。</p>
+            <p>已经写好的内容我不删，会留着。</p>
+            <p>这不是针对谁。只是我必须停下来了。</p>
+            <p>谢谢你们陪我走过这一段。月底后，这个网站完结。</p>
+          </div>
+        </div>
+        <div class="splash-mandatory-card">
+          <div class="splash-mandatory-date">2026.09.13</div>
+          <div class="splash-mandatory-h">关于二级密码</div>
+          <div class="splash-mandatory-body">
+            <p>不用二级密码也能正常使用网站。二级密码只做两件事：开启系统内置字卡，跳过开屏问答。</p>
+            <p>不解锁不影响使用，字卡可以自己添加。</p>
+            <p>另外，我发现有人在公开二传密码，可能已经传了几百上千人。这个密码后续可能会改——不改的话，防护就没有意义了。</p>
+            <p>我的本意不是扩圈。网站是免费的，做到现在我觉得可以了，心理压力太大，所以月底停更。</p>
+          </div>
+        </div>
+        <div class="splash-mandatory-end">—— 公告完 ——</div>
+      </div>
+      <div class="splash-mandatory-foot">
+        <div class="splash-mandatory-hint" id="splash-mandatory-hint">请滑到底部后确认进入</div>
+        <div class="splash-mandatory-enter" id="splash-mandatory-enter">我已阅读并确认进入</div>
+      </div>
     </div>
   </div>
   <div class="phone">
@@ -10510,7 +10615,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.617</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.618</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10805,7 +10910,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.617</span>
+              <span class="lic-ver">v3.26.618</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -19657,6 +19762,52 @@ try { if (window.__mochiDataSlow) slow = true; } catch (e) {} // 事件先于监
 let windowLoaded = false;
 const loaded = () => windowLoaded || (typeof document !== 'undefined' && document.readyState === 'complete');
 const splashBox = document.getElementById('splash-box');
+const mandEl = document.getElementById('splash-mandatory');
+const mandScroll = document.getElementById('splash-mandatory-scroll');
+const mandEnter = document.getElementById('splash-mandatory-enter');
+const mandHint = document.getElementById('splash-mandatory-hint');
+let mandBottom = false;
+function updateMandState() {
+if (mandHint) mandHint.hidden = !!mandBottom;
+if (mandEnter) mandEnter.classList.toggle('is-disabled', !mandBottom);
+}
+function checkMandScrolled() {
+if (!mandScroll) return;
+const b = mandScroll.scrollHeight - mandScroll.scrollTop - mandScroll.clientHeight <= 8;
+if (b !== mandBottom) { mandBottom = b; updateMandState(); }
+}
+function showMandatory() {
+if (splash.classList.contains('hide')) return;
+if (!mandEl) { finishEnter(); return; } // 锚点缺失兜底：不卡死进入入口
+mandEl.hidden = false;
+if (mandScroll) mandScroll.scrollTop = 0;
+mandBottom = false;
+updateMandState();
+checkMandScrolled();
+}
+function finishEnter() {
+if (splash.classList.contains('hide')) return;
+if (!seenToday) {
+try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
+}
+hide();
+if (!ready()) {
+try {
+if (window.openModal) {
+window.openModal('数据仍在加载', '数据较多仍在后台加载，部分内容（字卡 / 图片 / 聊天记录等）可能暂时看不见，建议稍后刷新页面。', null);
+}
+} catch (e) {}
+return;
+}
+try {
+const dgb = (typeof navigator !== 'undefined' && navigator.deviceMemory) || 8;
+if (dgb > 4 && window.hydrateLibScopes) {
+setTimeout(function () {
+try { window.hydrateLibScopes(['own']).catch(function () {}); } catch (e) {}
+}, 1500);
+}
+} catch (e) {}
+}
 let scrolledBottom = false;
 function checkScrolled() {
 let bottom = true;
@@ -19683,39 +19834,29 @@ if (forceEnterEl) forceEnterEl.hidden = ready() || readyForced || !slow || !load
 const enter = () => {
 if (splash.classList.contains('hide')) return;
 if (!ready()) {
-if (readyForced) { forceEnter(); }
+if (readyForced) { showMandatory(); }
 return; // 数据未就绪且未硬放行：禁止进入（原有门控）
 }
 if (!scrolledBottom || !loaded()) return; // 未滑到底 / 页面未加载完：禁止进入
 if (!seenToday) {
 try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
 }
-hide();
-try {
-const dgb = (typeof navigator !== 'undefined' && navigator.deviceMemory) || 8;
-if (dgb > 4 && window.hydrateLibScopes) {
-setTimeout(function () {
-try { window.hydrateLibScopes(['own']).catch(function () {}); } catch (e) {}
-}, 1500);
-}
-} catch (e) {}
+showMandatory();
 };
 const forceEnter = () => {
 if (splash.classList.contains('hide')) return;
 if (!seenToday) {
 try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
 }
-hide();
-try {
-if (window.openModal) {
-window.openModal('数据仍在加载', '数据较多仍在后台加载，部分内容（字卡 / 图片 / 聊天记录等）可能暂时看不见，建议稍后刷新页面。', null);
-}
-} catch (e) {}
+showMandatory();
 };
 updateEnterState();
 if (splashBox) splashBox.addEventListener('scroll', checkScrolled, { passive: true });
 if (enterEl) enterEl.addEventListener('click', (e) => { e.stopPropagation(); enter(); });
 if (forceEnterEl) forceEnterEl.addEventListener('click', (e) => { e.stopPropagation(); forceEnter(); });
+if (mandEnter) mandEnter.addEventListener('click', (e) => { e.stopPropagation(); if (mandBottom) finishEnter(); });
+if (mandScroll) mandScroll.addEventListener('scroll', checkMandScrolled, { passive: true });
+window.addEventListener('resize', checkMandScrolled);
 window.addEventListener('load', function () { windowLoaded = true; updateEnterState(); });
 setTimeout(function () { if (!windowLoaded) { windowLoaded = true; updateEnterState(); } }, 30000);
 document.addEventListener('mochi-restore-done', updateEnterState);
@@ -27679,6 +27820,18 @@ return String(s == null ? '' : s)
 function escTxtBr(s) {
 return escTxt(s).replace(/\n/g, '<br>');
 }
+window.mochiInlineTextHtml = function (s) {
+s = String(s == null ? '' : s);
+if (s.indexOf('@@m:') < 0) return escTxtBr(s);
+const _t = s.split(/(@@m:[0-9a-f]{32})/g), _tt = [];
+for (let _i = 0; _i < _t.length; _i++) {
+const _p = _t[_i];
+if (_p.indexOf('@@m:') === 0 && _p.length === 36) {
+_tt.push('<img class="msg-inline-tok" src="' + _p + '" alt="" loading="lazy" decoding="async">');
+} else { _tt.push(escTxtBr(_p)); }
+}
+return _tt.join('');
+};
 function pokeIconHtml(text) {
 const s = String(text == null ? '' : text);
 const prefix = '<svg class="st-ico"';
@@ -29249,7 +29402,7 @@ let segHtml = '';
 for (let i = 0; i < segs.length; i++) {
 if (!rcs.some(r => r.idx === i)) {
 if (segHtml) segHtml += ' ';
-segHtml += escTxtBr(T(segs[i]));
+segHtml += window.mochiInlineTextHtml(T(segs[i]));
 }
 }
 let sub = '';
@@ -29273,7 +29426,7 @@ const __rawText = typeof rec.text === 'string' ? rec.text : '';
 const __blankMsg = !__rawText.trim();
 const __bodyHtml = __blankMsg
 ? '<span style="opacity:.5;font-size:12px">（空白消息）</span>'
-: '<span style="opacity:.85">' + escTxtBr(T(__rawText)) + '</span>';
+: '<span style="opacity:.85;word-break:break-word">' + window.mochiInlineTextHtml(T(__rawText)) + '</span>';
 b.innerHTML = rec.quote
 ? quoteHtml(rec.quote, rec.qside) + __bodyHtml
 : __bodyHtml;
@@ -35928,7 +36081,7 @@ return '<img class="msg-img' + (isSticker ? ' msg-img-sm' : ' msg-img-big') + '"
 if (textPart) inner += '<span style="opacity:.85;word-break:break-word">' + escTxtBr(textPart) + '</span>';
 b.innerHTML = quoteStr + inner;
 } else {
-b.innerHTML = quoteStr + '<span style="opacity:.85">' + escTxtBr(rec.text || '') + '</span>';
+b.innerHTML = quoteStr + '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
 }
 if (rec.mood && rec.mood.length) {
 let mm = b.querySelector('.msg-moods');
@@ -36331,7 +36484,7 @@ const txt = rec.parts.filter(p => p.k === 'text').map(p => p.v).join(' ');
 return (imgs ? ph('[图片]') : '') +
 (txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
 }
-return '<span style="opacity:.85;word-break:break-word">' + escTxtBr(rec.text || '') + '</span>';
+return '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
 }
 function gcRetractMediaHtml(rec) {
 if (rec.type === 'image' && rec.text) {
@@ -90624,4 +90777,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtybbf7n -->
+<!-- __MOCHI_EOF__ mtz7sju4 -->

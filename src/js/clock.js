@@ -266,6 +266,69 @@
   //   全部说明已直接展示在开屏上，点【点击进入】即进入（点击即视为已阅读知晓），不再弹二次确认层。
   //   只允许点按钮进入（长公告需滚动阅读，避免误触整屏直接跳过）。
   // v3.8.y：必须把整页滑到底才能进入——未到底时按钮置灰不可点（无法跳过阅读）。
+  // v3.26.x：点击进入后强制观看公告——每次进入都先弹 #splash-mandatory 强制公告页
+  // （作者道别公告：二传二改 / 月底停更 / 二级密码），必须把该页滑到底、点
+  // 【我已阅读并确认进入】（finishEnter）才真正隐藏开屏进入；未到底时按钮置灰不可点。
+  const mandEl = document.getElementById('splash-mandatory');
+  const mandScroll = document.getElementById('splash-mandatory-scroll');
+  const mandEnter = document.getElementById('splash-mandatory-enter');
+  const mandHint = document.getElementById('splash-mandatory-hint');
+  let mandBottom = false;
+  function updateMandState() {
+    if (mandHint) mandHint.hidden = !!mandBottom;
+    if (mandEnter) mandEnter.classList.toggle('is-disabled', !mandBottom);
+  }
+  function checkMandScrolled() {
+    if (!mandScroll) return;
+    const b = mandScroll.scrollHeight - mandScroll.scrollTop - mandScroll.clientHeight <= 8;
+    if (b !== mandBottom) { mandBottom = b; updateMandState(); }
+  }
+  function showMandatory() {
+    if (splash.classList.contains('hide')) return;
+    if (!mandEl) { finishEnter(); return; } // 锚点缺失兜底：不卡死进入入口
+    mandEl.hidden = false;
+    if (mandScroll) mandScroll.scrollTop = 0;
+    mandBottom = false;
+    updateMandState();
+    checkMandScrolled();
+  }
+  // 真正进入：隐藏开屏 + （数据未真就绪时）数据不全提示 / 字卡预加载——原 enter/forceEnter 的收尾逻辑收拢于此
+  function finishEnter() {
+    if (splash.classList.contains('hide')) return;
+    if (!seenToday) {
+      try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
+    }
+    hide();
+    if (!ready()) {
+      // v3.26.x #135：未真就绪但已硬放行（20s 保险丝）→ 弹「数据仍在加载」提示
+      // （不静默进入，用户知情数据可能不全）
+      try {
+        if (window.openModal) {
+          window.openModal('数据仍在加载', '数据较多仍在后台加载，部分内容（字卡 / 图片 / 聊天记录等）可能暂时看不见，建议稍后刷新页面。', null);
+        }
+      } catch (e) {}
+      return;
+    }
+    // v3.26.x：开屏进入后预加载字卡大键——中高端机（deviceMemory>4GB 或无法判断，含所有 iOS）
+    //   后台静默取回【当前桌面专属】字卡(own)，避免用户点进字卡库才看到"字卡较多，正在加载"。
+    //   低端机（deviceMemory≤4GB）保持懒加载，与 idb.js v3.14.x OOM 预算 12MB 对齐防压崩。
+    //   只预取 own 不预取 public：public 是跨所有桌面共享的公用字卡大键（chatcard.js 注释提到
+    //   27MB 公用库真机压崩案例），老 iOS（SE2/8 等 2-3GB，deviceMemory 缺失被当 8GB）预拉它会
+    //   绕过 idb.js 24MB 预算；own 是单联系人专属，通常远小于公用库，风险最低收益最高。public
+    //   留懒加载（点字卡库时 MutationObserver 取回 + toast 提示）。延迟 1.5s 让开屏隐藏动画(400ms)
+    //   +首屏桌面渲染先完成再取回，避免抢主线程/堆；hydrateLibScopes 自带"有数据/已确认无键跳过"
+    //   +in-flight 去重，已就绪零开销，未就绪时用户再点字卡库复用同一取回链不重复。只在用户主动
+    //   点击进入后跑（非 mochi-restore-done 后台事件），符合"用户正在看的场景按需拉一把"红线。
+    //   Promise 兜底 catch 防 unhandledrejection。
+    try {
+      const dgb = (typeof navigator !== 'undefined' && navigator.deviceMemory) || 8;
+      if (dgb > 4 && window.hydrateLibScopes) {
+        setTimeout(function () {
+          try { window.hydrateLibScopes(['own']).catch(function () {}); } catch (e) {}
+        }, 1500);
+      }
+    } catch (e) {}
+  }
   let scrolledBottom = false;
   function checkScrolled() {
     let bottom = true;
@@ -301,10 +364,10 @@
   }
   const enter = () => {
     if (splash.classList.contains('hide')) return;
-    // v3.26.x #135：未真就绪但已硬放行（20s 保险丝）→ 走 forceEnter：
-    // 隐藏开屏 + 弹「数据仍在加载」提示（不静默进入，用户知情数据可能不全）
+    // v3.26.x #135：未真就绪但已硬放行（20s 保险丝）→ 进强制公告页，
+    // 确认进入时（finishEnter）弹「数据仍在加载」提示（不静默进入，用户知情数据可能不全）
     if (!ready()) {
-      if (readyForced) { forceEnter(); }
+      if (readyForced) { showMandatory(); }
       return; // 数据未就绪且未硬放行：禁止进入（原有门控）
     }
     if (!scrolledBottom || !loaded()) return; // 未滑到底 / 页面未加载完：禁止进入
@@ -312,44 +375,28 @@
     if (!seenToday) {
       try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
     }
-    hide();
-    // v3.26.x：开屏进入后预加载字卡大键——中高端机（deviceMemory>4GB 或无法判断，含所有 iOS）
-    //   后台静默取回【当前桌面专属】字卡(own)，避免用户点进字卡库才看到"字卡较多，正在加载"。
-    //   低端机（deviceMemory≤4GB）保持懒加载，与 idb.js v3.14.x OOM 预算 12MB 对齐防压崩。
-    //   只预取 own 不预取 public：public 是跨所有桌面共享的公用字卡大键（chatcard.js 注释提到
-    //   27MB 公用库真机压崩案例），老 iOS（SE2/8 等 2-3GB，deviceMemory 缺失被当 8GB）预拉它会
-    //   绕过 idb.js 24MB 预算；own 是单联系人专属，通常远小于公用库，风险最低收益最高。public
-    //   留懒加载（点字卡库时 MutationObserver 取回 + toast 提示）。延迟 1.5s 让开屏隐藏动画(400ms)
-    //   +首屏桌面渲染先完成再取回，避免抢主线程/堆；hydrateLibScopes 自带"有数据/已确认无键跳过"
-    //   +in-flight 去重，已就绪零开销，未就绪时用户再点字卡库复用同一取回链不重复。只在用户主动
-    //   点击进入后跑（非 mochi-restore-done 后台事件），符合"用户正在看的场景按需拉一把"红线。
-    //   Promise 兜底 catch 防 unhandledrejection。
-    try {
-      const dgb = (typeof navigator !== 'undefined' && navigator.deviceMemory) || 8;
-      if (dgb > 4 && window.hydrateLibScopes) {
-        setTimeout(function () {
-          try { window.hydrateLibScopes(['own']).catch(function () {}); } catch (e) {}
-        }, 1500);
-      }
-    } catch (e) {}
+    // v3.26.x：点击进入后强制观看公告——不再直接 hide，先弹强制公告页，
+    // 滑到底点【我已阅读并确认进入】（finishEnter）才真正隐藏开屏进入
+    showMandatory();
   };
-  // v3.26.x：数据较慢时用户主动「仍要进入」——hide 后提示数据可能不全
+  // v3.26.x：数据较慢时用户主动「仍要进入」——强制公告页不区分数据快慢，
+  // 任何入口进入都先读公告；确认进入后由 finishEnter 提示数据可能不全
   const forceEnter = () => {
     if (splash.classList.contains('hide')) return;
     if (!seenToday) {
       try { localStorage.setItem(seenKey, '1'); seenToday = true; } catch (e) {}
     }
-    hide();
-    try {
-      if (window.openModal) {
-        window.openModal('数据仍在加载', '数据较多仍在后台加载，部分内容（字卡 / 图片 / 聊天记录等）可能暂时看不见，建议稍后刷新页面。', null);
-      }
-    } catch (e) {}
+    showMandatory();
   };
   updateEnterState();
   if (splashBox) splashBox.addEventListener('scroll', checkScrolled, { passive: true });
   if (enterEl) enterEl.addEventListener('click', (e) => { e.stopPropagation(); enter(); });
   if (forceEnterEl) forceEnterEl.addEventListener('click', (e) => { e.stopPropagation(); forceEnter(); });
+  // v3.26.x：强制公告页——滑到底才可确认进入（mandBottom 未到底时按钮 is-disabled 不可点）
+  if (mandEnter) mandEnter.addEventListener('click', (e) => { e.stopPropagation(); if (mandBottom) finishEnter(); });
+  if (mandScroll) mandScroll.addEventListener('scroll', checkMandScrolled, { passive: true });
+  // 字体缩放/旋转等导致内容高度变化时重新判定是否已到底
+  window.addEventListener('resize', checkMandScrolled);
   // 页面加载完成 → 刷新进入状态（window load + readyState 轮询双保险）
   window.addEventListener('load', function () { windowLoaded = true; updateEnterState(); });
   // 30 秒兜底：页面个别资源挂起导致 load 永不触发时，到点视为已加载，避免开屏永远卡住

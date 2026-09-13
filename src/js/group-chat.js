@@ -648,7 +648,9 @@
       b.innerHTML = quoteStr + inner;
     } else {
       // v3.8.x：与 chat.js 一致——span 包裹 + 全量转义 + 换行转 <br>
-      b.innerHTML = quoteStr + '<span style="opacity:.85">' + escTxtBr(rec.text || '') + '</span>';
+      // #385：文本内嵌媒体池令牌 @@m:hash 交给 window.mochiInlineTextHtml 行内转 <img>，
+      // 防令牌串被当文字直出（群聊多字卡回复拼接同单聊，公用库共享多机型全现）
+      b.innerHTML = quoteStr + '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
     }
     // v3.16.x：心意字卡（情绪/心意/交流意图）渲染——与聊天页 renderMsg 同构，
     // label 与气泡正文完全相同时只留标签胶囊（与聊天页 dupBody 去重规则一致）
@@ -1123,7 +1125,7 @@ if (defs && defs.type === 'text' && defs.text) t = defs.text;
       return (imgs ? ph('[图片]') : '') +
         (txt ? '<span style="opacity:.85;word-break:break-word">' + escTxtBr(txt) + '</span>' : '');
     }
-    return '<span style="opacity:.85;word-break:break-word">' + escTxtBr(rec.text || '') + '</span>';
+    return '<span style="opacity:.85;word-break:break-word">' + (window.mochiInlineTextHtml ? window.mochiInlineTextHtml(rec.text || '') : escTxtBr(rec.text || '')) + '</span>';
   }
   // 撤回图片可看 #248：媒体消息的「点击查看」视图即时从记录数据生成缩略图——
   // 图片/表情/含图组合的 src 本就持久化在 rec.text / rec.parts 里，渲染时重拼 img

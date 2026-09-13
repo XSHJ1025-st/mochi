@@ -281,6 +281,8 @@ body.cs-time-divider .msg-time-divider { display:flex; }
 .msg-parts-imgs.multi { flex-wrap:wrap; }
 .msg-parts-imgs.multi .msg-img { width:70px; height:70px; object-fit:cover; }
 .msg-parts-imgs.multi .msg-img-big { width:110px; height:110px; object-fit:cover; }
+/* #385 文本气泡内嵌媒体池令牌渲染的行内图（把乱码令牌串还原成图；media-pool 观察器解图后 src 变 dataURL） */
+.msg-inline-tok { max-width:80px; max-height:80px; height:auto; border-radius:8px; vertical-align:middle; object-fit:contain; margin:0 2px; }
 
 /* 鎼滅储鑱婂ぉ璁板綍锛氳亰澶╅〉鍐呭祵瑕嗙洊灞傦紙v3.5.52锛屾槦瑷€寮忊€斺€斾笉绂诲紑鑱婂ぉ椤碉級 */
 /* 鎼滅储鑱婂ぉ璁板綍锛氳亰澶╅〉搴曢儴鍗婃锛坴3.5.53 闇插嚭鑱婂ぉ娑堟伅锛夆€斺€斿鐢?.poke-card 甯冨眬 */

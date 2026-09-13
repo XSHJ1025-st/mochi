@@ -1062,6 +1062,24 @@ return String(s == null ? '' : s)
 function escTxtBr(s) {
 return escTxt(s).replace(/\n/g, '<br>');
 }
+// FIX 2026-09-13 #385 媒体池令牌夹在文字中间被当文字直出（乱码："不错 多笑笑吧 @@m:5839…cb87 我不是很适应这个"）
+// ——#383 只治「整条 text 就是裸令牌」（normCell 升 type=image）；多字卡回复 pickN.join(' ') 拼出的
+// 混合文本消息里令牌嵌在正文中间，type 仍是 text，渲染端 escTxtBr 原样铺出令牌串＝乱码。聊天/群聊
+// 公用库共享故多机型全现。这里在消费者边界（气泡渲染）统一把内嵌 @@m:<hash32> 行内转成 <img>，
+// 交给 media-pool 文档级观察器解图——无论令牌怎么进 text、存量/新收、哪个机型浏览器都不再直出令牌串。
+// 群聊渲染复用（group-chat.js 调 window.mochiInlineTextHtml）；纯令牌整条也走 <img> 是渲染端兜底。
+window.mochiInlineTextHtml = function (s) {
+s = String(s == null ? '' : s);
+if (s.indexOf('@@m:') < 0) return escTxtBr(s);
+const _t = s.split(/(@@m:[0-9a-f]{32})/g), _tt = [];
+for (let _i = 0; _i < _t.length; _i++) {
+const _p = _t[_i];
+if (_p.indexOf('@@m:') === 0 && _p.length === 36) {
+_tt.push('<img class="msg-inline-tok" src="' + _p + '" alt="" loading="lazy" decoding="async">');
+} else { _tt.push(escTxtBr(_p)); }
+}
+return _tt.join('');
+};
 function pokeIconHtml(text) {
 const s = String(text == null ? '' : text);
 const prefix = '<svg class="st-ico"';
@@ -2836,7 +2854,7 @@ let segHtml = '';
 for (let i = 0; i < segs.length; i++) {
 if (!rcs.some(r => r.idx === i)) {
 if (segHtml) segHtml += ' ';
-segHtml += escTxtBr(T(segs[i]));
+segHtml += window.mochiInlineTextHtml(T(segs[i]));
 }
 }
 let sub = '';
@@ -2862,7 +2880,7 @@ const __rawText = typeof rec.text === 'string' ? rec.text : '';
 const __blankMsg = !__rawText.trim();
 const __bodyHtml = __blankMsg
 ? '<span style="opacity:.5;font-size:12px">（空白消息）</span>'
-: '<span style="opacity:.85">' + escTxtBr(T(__rawText)) + '</span>';
+: '<span style="opacity:.85;word-break:break-word">' + window.mochiInlineTextHtml(T(__rawText)) + '</span>';
 b.innerHTML = rec.quote
 ? quoteHtml(rec.quote, rec.qside) + __bodyHtml
 : __bodyHtml;

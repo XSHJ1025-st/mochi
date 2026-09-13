@@ -345,6 +345,60 @@ html { margin:0; padding:0; }
 }
 .splash-force-enter:active { opacity:.6; }
 .splash-force-enter[hidden] { display:none; }
+/* v3.26.x：点击进入后强制观看公告页——全屏覆盖开屏，每次进入先读作者公告：
+   必须把 .splash-mandatory-scroll 滑到底、点【我已阅读并确认进入】才真正进入
+   （未到底时按钮 is-disabled 置灰不可点，门控在 clock.js，不可删除或绕过） */
+.splash-mandatory {
+  position:absolute; inset:0; z-index:20;
+  background:var(--card-bg);
+  display:flex; flex-direction:column;
+  box-sizing:border-box;
+  padding:22px 18px calc(22px + var(--mochi-safe-bottom,env(safe-area-inset-bottom,0px)));
+}
+.splash-mandatory[hidden] { display:none; }
+.splash-mandatory-scroll {
+  flex:1; min-height:0; width:min(322px, 100%); margin:0 auto;
+  overflow-y:auto; box-sizing:border-box; padding:4px 2px 16px;
+  scrollbar-width:none; -ms-overflow-style:none;
+}
+.splash-mandatory-scroll::-webkit-scrollbar { display:none; }
+.splash-mandatory-head { text-align:center; margin-bottom:16px; }
+.splash-mandatory-title { font-size:15px; font-weight:800; color:var(--ink); letter-spacing:1.5px; }
+.splash-mandatory-sub { margin-top:6px; font-size:10.5px; font-weight:600; color:var(--muted); letter-spacing:1px; line-height:1.6; }
+/* 公告卡片：深色卡片 + 左侧竖条（复用 --sp-ink/--sp-soft 语义变量，明暗主题自适应） */
+.splash-mandatory-card {
+  margin-bottom:14px; padding:13px 15px 14px;
+  background:var(--sp-soft); border-left:3px solid var(--sp-ink); border-radius:10px;
+  animation:splash-fade-up .5s ease backwards;
+}
+.splash-mandatory-date { font-size:10px; font-weight:700; color:var(--hint-ink); letter-spacing:1px; margin-bottom:6px; }
+.splash-mandatory-h { font-size:13.5px; font-weight:800; color:var(--ink); letter-spacing:.5px; margin-bottom:9px; }
+.splash-mandatory-body p { font-size:12px; line-height:1.85; color:var(--soft-ink); }
+.splash-mandatory-body p + p { margin-top:6px; }
+/* 三点要求的条目：左置 · 强调符 */
+.splash-mandatory-body .mnum { padding-left:14px; position:relative; font-weight:700; color:var(--ink); }
+.splash-mandatory-body .mnum::before { content:"·"; position:absolute; left:3px; top:0; color:var(--sp-ink); font-weight:800; }
+/* 落款标签（右对齐小灰字） */
+.splash-mandatory-body .mtag { text-align:right; font-size:10.5px; color:var(--hint-ink); margin-top:10px; }
+.splash-mandatory-end { text-align:center; font-size:11px; color:var(--hint-ink); letter-spacing:2px; padding:2px 0 4px; }
+/* 底部确认区（常驻不随内容滚动）：提示 + 确认按钮 */
+.splash-mandatory-foot {
+  width:min(322px, 100%); margin:0 auto; box-sizing:border-box;
+  display:flex; flex-direction:column; align-items:center;
+  padding:12px 18px 0;
+}
+.splash-mandatory-hint { margin-bottom:12px; font-size:11px; color:var(--hint-ink); letter-spacing:1px; }
+.splash-mandatory-hint[hidden] { display:none; }
+.splash-mandatory-enter {
+  display:inline-block; padding:12px 34px;
+  background:var(--btn-bg); color:var(--btn-ink); font-size:13px; font-weight:700;
+  border-radius:99px; letter-spacing:2px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; user-select:none;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
+  transition:opacity .35s ease, transform .12s ease;
+}
+.splash-mandatory-enter:active { opacity:.75; transform:scale(.97); }
+.splash-mandatory-enter.is-disabled { opacity:.3; box-shadow:none; pointer-events:none; }
 @keyframes splash-pop {
   0% { transform:scale(.8); opacity:0; }
   100% { transform:scale(1); opacity:1; }
