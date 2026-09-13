@@ -49,7 +49,7 @@
   function stripLetterImg(l) {
     if (!l || typeof l !== 'object') return l;
     const c = Object.assign({}, l);
-    const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
+    const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
     c.content = strip(c.content);
     if (c.myReply) { c.myReply = Object.assign({}, c.myReply); c.myReply.content = strip(c.myReply.content); }
     if (c.partnerReply) { c.partnerReply = Object.assign({}, c.partnerReply); c.partnerReply.content = strip(c.partnerReply.content); }
@@ -91,7 +91,7 @@
   }
   function hasRealImg(o) {
     const s = [o && o.content, o && o.myReply && o.myReply.content, o && o.partnerReply && o.partnerReply.content].join(' ');
-    return /data:image\//.test(s || '');
+    return /data:image\//.test(s || '') || (!!window.mochiMediaIsToken && s.split(' ').some(window.mochiMediaIsToken));
   }
   function mergeLists(a, b) {
     const map = {};
@@ -200,7 +200,7 @@
       t = String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       return (fit && window.taFit) ? window.taFit(t) : t;
     };
-    const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+    const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+|@@m:[0-9a-f]{32})/g;
     return s.replace(RE, function (all, pre, src) {
       if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
         return seg(all); // 普通网址（无附图前缀）按文本保留
@@ -217,6 +217,7 @@
     const cleaned = str
       .replace(/(?:sticker|image):data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
       .replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
+      .replace(/@@m:[0-9a-f]{32}/g, '')
       .replace(/\s+/g, ' ').trim();
     let out = escHtml((cleaned || '（图片）').slice(0, 30));
     if (fit && window.taFit) out = window.taFit(out);
@@ -793,7 +794,8 @@
     if (cfg.emojiEn && ep.length && Math.random() * 100 < 15) t += ' ' + ep[Math.floor(Math.random() * ep.length)];
     // v3.11.x：只收 dataURL 媒体——信件正文按 sticker:/data:image 正则识别内联图片，
     //   链接导入的 http(s) 字卡拼进信纸只会显示成一段 URL 文字，先过滤掉
-    const st = pool.sticker.concat(pool.image).filter(s => typeof s === 'string' && s.indexOf('data:') === 0);
+    // FIX 2026-09-13 #386 媒体池令牌卡放行（renderBody 已认 @@m:hash 渲内联图）
+    const st = pool.sticker.concat(pool.image).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))));
     if (cfg.stickerEn && st.length && Math.random() * 100 < 20) {
       // v3.26.x：TA 自动写信/回信选中的表情包如果超大（>阈值），在这里同步换一张
       //   小图（避免几百 KB 原图拼进 content 触发信箱主键 200KB 剥图成「图片」）。

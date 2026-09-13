@@ -9360,9 +9360,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789272266716">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.619</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 12:04<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789275005537">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.620</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 12:50<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10641,7 +10641,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.619</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.620</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10936,7 +10936,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.619</span>
+              <span class="lic-ver">v3.26.620</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -20001,6 +20001,7 @@ list.insertBefore(toc, list.firstChild);
 (function () {
 const notice = document.getElementById('splash-notice');
 if (!notice) return;
+if (location.protocol === 'file:') return;
 fetch('./notice.json?v=' + Date.now(), { cache: 'no-store' })
 .then(function (r) { if (!r.ok) throw new Error('notice fetch ' + r.status); return r.json(); })
 .then(function (data) {
@@ -59517,7 +59518,7 @@ return [];
 function stripLetterImg(l) {
 if (!l || typeof l !== 'object') return l;
 const c = Object.assign({}, l);
-const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
+const strip = (s) => { if (typeof s !== 'string') return s; let t = s.replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]'); if (t.length > 8192) t = t.slice(0, 8192) + '…'; return t; };
 c.content = strip(c.content);
 if (c.myReply) { c.myReply = Object.assign({}, c.myReply); c.myReply.content = strip(c.myReply.content); }
 if (c.partnerReply) { c.partnerReply = Object.assign({}, c.partnerReply); c.partnerReply.content = strip(c.partnerReply.content); }
@@ -59550,7 +59551,7 @@ return a.length + b.length + c.length;
 }
 function hasRealImg(o) {
 const s = [o && o.content, o && o.myReply && o.myReply.content, o && o.partnerReply && o.partnerReply.content].join(' ');
-return /data:image\//.test(s || '');
+return /data:image\//.test(s || '') || (!!window.mochiMediaIsToken && s.split(' ').some(window.mochiMediaIsToken));
 }
 function mergeLists(a, b) {
 const map = {};
@@ -59625,7 +59626,7 @@ const seg = (t) => {
 t = String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 return (fit && window.taFit) ? window.taFit(t) : t;
 };
-const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+|@@m:[0-9a-f]{32})/g;
 return s.replace(RE, function (all, pre, src) {
 if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
 return seg(all); // 普通网址（无附图前缀）按文本保留
@@ -59639,6 +59640,7 @@ const str = String(s || '');
 const cleaned = str
 .replace(/(?:sticker|image):data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
 .replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '')
+.replace(/@@m:[0-9a-f]{32}/g, '')
 .replace(/\s+/g, ' ').trim();
 let out = escHtml((cleaned || '（图片）').slice(0, 30));
 if (fit && window.taFit) out = window.taFit(out);
@@ -60097,7 +60099,7 @@ const kp = pool.kaomoji.length ? pool.kaomoji : pool.defKaomoji;
 const ep = pool.emoji.length ? pool.emoji : pool.defEmoji;
 if (cfg.kaomojiEn && kp.length && Math.random() * 100 < 30) t += ' ' + kp[Math.floor(Math.random() * kp.length)];
 if (cfg.emojiEn && ep.length && Math.random() * 100 < 15) t += ' ' + ep[Math.floor(Math.random() * ep.length)];
-const st = pool.sticker.concat(pool.image).filter(s => typeof s === 'string' && s.indexOf('data:') === 0);
+const st = pool.sticker.concat(pool.image).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))));
 if (cfg.stickerEn && st.length && Math.random() * 100 < 20) {
 const orig = st[Math.floor(Math.random() * st.length)];
 const small = (window._shrunkStickerCache && window._shrunkStickerCache[orig]) || orig;
@@ -60688,7 +60690,7 @@ if (Array.isArray(c.imgs)) c.imgs = [];
 c.authorAv = '';
 c.taAv = '';
 if (typeof c.content === 'string') {
-c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (c.content.length > 8192) c.content = c.content.slice(0, 8192) + '…';
 }
 if (Array.isArray(c.comments)) {
@@ -60696,7 +60698,7 @@ c.comments = c.comments.map(co => {
 if (!co || typeof co !== 'object') return co;
 const cc = Object.assign({}, co);
 if (typeof cc.content === 'string') {
-cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (cc.content.length > 8192) cc.content = cc.content.slice(0, 8192) + '…';
 }
 if (Array.isArray(cc.replies)) {
@@ -60704,7 +60706,7 @@ cc.replies = cc.replies.map(r => {
 if (!r || typeof r !== 'object') return r;
 const rr = Object.assign({}, r);
 if (typeof rr.content === 'string') {
-rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
 if (rr.content.length > 8192) rr.content = rr.content.slice(0, 8192) + '…';
 }
 return rr;
@@ -60844,8 +60846,8 @@ const prev = byKey[k];
 if (!prev) { byKey[k] = Object.assign({}, o); return; }
 if (Array.isArray(o.replies) && o.replies.length) prev.replies = deeperList(prev.replies || [], o.replies);
 else if (!Array.isArray(prev.replies) && Array.isArray(o.replies)) prev.replies = o.replies;
-const prevImg = /data:image\//.test(String(prev.content || ''));
-const oImg = /data:image\//.test(String(o.content || ''));
+const prevImg = /data:image\//.test(String(prev.content || '')) || (window.mochiMediaIsToken && window.mochiMediaIsToken(String(prev.content || '').trim()));
+const oImg = /data:image\//.test(String(o.content || '')) || (window.mochiMediaIsToken && window.mochiMediaIsToken(String(o.content || '').trim()));
 if (!prevImg && oImg) prev.content = o.content;
 };
 (a || []).forEach(put);
@@ -60956,13 +60958,14 @@ const pk = cid ? (window.getPokeCardsFor ? window.getPokeCardsFor(cid) : []) : (
 return pk.length ? new Set(pk) : null;
 })();
 const text = [], kaomoji = [], emoji = [];
-const onlyData = (arr) => (arr || []).filter(s => typeof s === 'string' && s.indexOf('data:') === 0);
+const onlyData = (arr) => (arr || []).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))));
 const mediaSticker = onlyData(cid ? (window.getMediaCardsFor ? window.getMediaCardsFor(cid, 'sticker') : []) : ((window.getMediaCards && window.getMediaCards('sticker')) || []));
 const mediaImage = onlyData(cid ? (window.getMediaCardsFor ? window.getMediaCardsFor(cid, 'image') : []) : ((window.getMediaCards && window.getMediaCards('image')) || []));
 cards.forEach(c => {
 if (pokeSet && pokeSet.has(c)) return;
 if (typeof c === 'string' && c.indexOf('data:') === 0) return; // dataURL 已按媒体分类
 if (typeof c === 'string' && c.indexOf('|||') >= 0) return;
+if (c && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) return;
 if (/[\uD800-\uDBFF]/.test(c) || /^[😀-🙏🌀-🫿]/u.test(c)) emoji.push(c);
 else if (/[\(（｡◕(◕)(づ｡(¬)]/.test(c) && /[\)）】)]/.test(c)) kaomoji.push(c);
 else text.push(c);
@@ -61000,7 +61003,7 @@ const fitSeg = (seg) => {
 seg = String(seg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 return (cid && window.taFit) ? window.taFit(seg, cid) : seg;
 };
-const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|@@m:[0-9a-f]{32}|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
 return str.replace(RE, function (all, pre, src) {
 if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
 return fitSeg(all); // 普通网址（无附图前缀）按文本保留
@@ -61081,7 +61084,7 @@ return { content: textParts.join(' '), imgs: imgs };
 function contentHtmlFor(p) {
 let content = String(p.content || '');
 const imgs = (p.imgs && p.imgs.length) ? p.imgs.slice() : (p.img ? [p.img] : []);
-content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g, (m, pre, u) => { if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
+content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|@@m:[0-9a-f]{32}|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g, (m, pre, u) => { if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
 let html = inlineBody(content, (p.role || p.by) === 'me' ? '' : p.owner);
 if (imgs.length) {
 html += '<div class="feed-imgs">' + imgs.map(u => '<img src="' + attrEsc(u) + '" alt="图片" loading="lazy">').join('') + feedStickersHtml(p) + '</div>';
@@ -61686,7 +61689,7 @@ let comStickerTab = 'ta';   // 'ta' | 'mine'
 let comStickerCur = '';     // 当前分组
 function comStickerGroups() {
 const onlyData = (groups) => (groups || [])
-.map(([n, a]) => [n, (a || []).filter(s => typeof s === 'string' && s.indexOf('data:') === 0)])
+.map(([n, a]) => [n, (a || []).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))))])
 .filter(([, a]) => a.length);
 if (comStickerTab === 'ta') return onlyData((window.getMediaGroups && window.getMediaGroups('sticker')) || []);
 try {
@@ -61922,7 +61925,7 @@ else addNotice('comment', p2.id, taName2 + ' 回复了你的评论：' + noticeT
 if (comSend) comSend.addEventListener('click', submitComment);
 if (comInput) comInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); submitComment(); } });
 function noticeTextClean(s) {
-return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]');
+return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]').replace(/@@m:[0-9a-f]{32}/g, '[表情包]');
 }
 function notices() { try { return JSON.parse(store.get('feed-notices') || '[]'); } catch (e) { return []; } }
 function saveNotices(list) { store.set('feed-notices', JSON.stringify(list)); }
@@ -62006,7 +62009,7 @@ if (!p || !p.comments || !p.comments[n.ci]) return '';
 const src = (n.ri != null && Array.isArray(p.comments[n.ci].replies) && p.comments[n.ci].replies[n.ri])
 ? p.comments[n.ci].replies[n.ri].content
 : p.comments[n.ci].content;
-const m = /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/.exec(String(src || ''));
+const m = /(?:data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+|@@m:[0-9a-f]{32})/.exec(String(src || ''));
 return m ? m[0] : '';
 } catch (e) { return ''; }
 }
@@ -87266,6 +87269,7 @@ if (closeBtn) closeBtn.onclick = function () { verMarkAck(onlineTs); barEl.hidde
 (function () {
 const bar = document.getElementById('ver-update-bar');
 if (!bar) return;
+if (location.protocol === 'file:') return;
 let baseTs = null;      // 当前页面的版本时间戳（基线）
 let baseGot = false;
 (function () {
@@ -90822,4 +90826,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzaicws -->
+<!-- __MOCHI_EOF__ mtzc5275 -->

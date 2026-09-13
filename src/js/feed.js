@@ -125,7 +125,7 @@
     c.authorAv = '';
     c.taAv = '';
     if (typeof c.content === 'string') {
-      c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+      c.content = c.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
       if (c.content.length > 8192) c.content = c.content.slice(0, 8192) + '…';
     }
     if (Array.isArray(c.comments)) {
@@ -133,7 +133,7 @@
         if (!co || typeof co !== 'object') return co;
         const cc = Object.assign({}, co);
         if (typeof cc.content === 'string') {
-          cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+          cc.content = cc.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
           if (cc.content.length > 8192) cc.content = cc.content.slice(0, 8192) + '…';
         }
         if (Array.isArray(cc.replies)) {
@@ -141,7 +141,7 @@
             if (!r || typeof r !== 'object') return r;
             const rr = Object.assign({}, r);
             if (typeof rr.content === 'string') {
-              rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]');
+              rr.content = rr.content.replace(/data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+/g, '[图片]').replace(/@@m:[0-9a-f]{32}/g, '[图片]');
               if (rr.content.length > 8192) rr.content = rr.content.slice(0, 8192) + '…';
             }
             return rr;
@@ -341,8 +341,8 @@
       if (!prev) { byKey[k] = Object.assign({}, o); return; }
       if (Array.isArray(o.replies) && o.replies.length) prev.replies = deeperList(prev.replies || [], o.replies);
       else if (!Array.isArray(prev.replies) && Array.isArray(o.replies)) prev.replies = o.replies;
-      const prevImg = /data:image\//.test(String(prev.content || ''));
-      const oImg = /data:image\//.test(String(o.content || ''));
+      const prevImg = /data:image\//.test(String(prev.content || '')) || (window.mochiMediaIsToken && window.mochiMediaIsToken(String(prev.content || '').trim()));
+      const oImg = /data:image\//.test(String(o.content || '')) || (window.mochiMediaIsToken && window.mochiMediaIsToken(String(o.content || '').trim()));
       if (!prevImg && oImg) prev.content = o.content;
     };
     (a || []).forEach(put);
@@ -487,7 +487,8 @@
     const text = [], kaomoji = [], emoji = [];
     // v3.11.x：只收 dataURL 媒体——朋友圈配图会把图片拼进正文文本（data:image 正则
     // 识别内联），链接导入的 http(s) 字卡进来只会显示成一段 URL 文字，先过滤掉
-    const onlyData = (arr) => (arr || []).filter(s => typeof s === 'string' && s.indexOf('data:') === 0);
+    // FIX 2026-09-13 #386 媒体池令牌卡也是媒体载荷（渲染端 inlineBody/图片网格已认 @@m:hash）
+    const onlyData = (arr) => (arr || []).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))));
     const mediaSticker = onlyData(cid ? (window.getMediaCardsFor ? window.getMediaCardsFor(cid, 'sticker') : []) : ((window.getMediaCards && window.getMediaCards('sticker')) || []));
     const mediaImage = onlyData(cid ? (window.getMediaCardsFor ? window.getMediaCardsFor(cid, 'image') : []) : ((window.getMediaCards && window.getMediaCards('image')) || []));
     cards.forEach(c => {
@@ -496,6 +497,8 @@
       // v3.6.x：语音字卡（文件名|||audio;base64）不以 data: 开头，需单独丢弃——
       //   否则整段音频 base64 会被当文字拼进朋友圈正文/评论
       if (typeof c === 'string' && c.indexOf('|||') >= 0) return;
+      // FIX 2026-09-13 #386 裸 @@m:hash 令牌卡不进文字池（与 chat.js getPool #383 同款第三道守卫）
+      if (c && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) return;
       if (/[\uD800-\uDBFF]/.test(c) || /^[😀-🙏🌀-🫿]/u.test(c)) emoji.push(c);
       else if (/[\(（｡◕(◕)(づ｡(¬)]/.test(c) && /[\)）】)]/.test(c)) kaomoji.push(c);
       else text.push(c);
@@ -556,7 +559,7 @@
       seg = String(seg).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       return (cid && window.taFit) ? window.taFit(seg, cid) : seg;
     };
-    const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
+    const RE = /((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|@@m:[0-9a-f]{32}|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g;
     return str.replace(RE, function (all, pre, src) {
       if (src.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') {
         return fitSeg(all); // 普通网址（无附图前缀）按文本保留
@@ -657,7 +660,7 @@
     // 引擎会在 'data:image' 中间误匹配 'image'，导致后面 (data:image…) 整体匹配失败
     // （mail.js renderBody 同款已生效模式）
     // v3.26.x：对齐 inlineBody——base64、svg 类非 base64 dataURL 与带前缀外链图都并入图片网格
-    content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g, (m, pre, u) => { if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
+    content = content.replace(/((?:sticker|image):)?(https?:\/\/[^\s"'<>]+|@@m:[0-9a-f]{32}|data:image\/[a-zA-Z0-9.+-]+(?:;[a-zA-Z0-9.+-]*(?:=[^;,]*)?)*,[^\s"'<>]+)/g, (m, pre, u) => { if (u.indexOf('http') === 0 && pre !== 'sticker:' && pre !== 'image:') return m; imgs.push(u); return ' '; });
     let html = inlineBody(content, (p.role || p.by) === 'me' ? '' : p.owner);
     if (imgs.length) {
       // #302：贴纸回复——贴纸绝对定位叠在配图区上（x/y 为区块百分比），随卡片一起局部刷新
@@ -1352,7 +1355,7 @@ function comStickerGroups() {
   // v3.11.x：只收 dataURL 表情——选中后会拼进评论/正文文本（data:image 正则识别），
   // 链接导入的 http(s) 表情拼进去只显示 URL 文字，先过滤掉
   const onlyData = (groups) => (groups || [])
-    .map(([n, a]) => [n, (a || []).filter(s => typeof s === 'string' && s.indexOf('data:') === 0)])
+    .map(([n, a]) => [n, (a || []).filter(s => typeof s === 'string' && (s.indexOf('data:') === 0 || (window.mochiMediaIsToken && window.mochiMediaIsToken(s))))])
     .filter(([, a]) => a.length);
   if (comStickerTab === 'ta') return onlyData((window.getMediaGroups && window.getMediaGroups('sticker')) || []);
   // FIX 2026-09-04 #154 朋友圈评论「我的表情包」与聊天面板不同步——优先取 chat.js
@@ -1624,7 +1627,7 @@ if (comInput) comInput.addEventListener('keydown', (e) => { if (e.key === 'Enter
   // ================= 通知提醒（TA 点赞/评论/发布动态 → 未读角标 + 列表 + 点击跳转） =================
   // v3.5.81：通知文本里的 dataURL（表情包/图片）清洗为 [表情包]，避免乱码长串；面板显示缩略图
   function noticeTextClean(s) {
-    return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]');
+    return String(s || '').replace(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/g, '[表情包]').replace(/@@m:[0-9a-f]{32}/g, '[表情包]');
   }
   function notices() { try { return JSON.parse(store.get('feed-notices') || '[]'); } catch (e) { return []; } }
   function saveNotices(list) { store.set('feed-notices', JSON.stringify(list)); }
@@ -1729,7 +1732,7 @@ if (comInput) comInput.addEventListener('keydown', (e) => { if (e.key === 'Enter
       const src = (n.ri != null && Array.isArray(p.comments[n.ci].replies) && p.comments[n.ci].replies[n.ri])
         ? p.comments[n.ci].replies[n.ri].content
         : p.comments[n.ci].content;
-      const m = /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+/.exec(String(src || ''));
+      const m = /(?:data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+|@@m:[0-9a-f]{32})/.exec(String(src || ''));
       return m ? m[0] : '';
     } catch (e) { return ''; }
   }
