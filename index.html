@@ -9360,9 +9360,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789275005537">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.620</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 12:50<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789276674885">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.622</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 13:17<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10641,7 +10641,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.620</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.622</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10936,7 +10936,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.620</span>
+              <span class="lic-ver">v3.26.622</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -89810,13 +89810,19 @@ if (!_kbActive && !_iProv) _iIH = ih;
 if (_iProv && _vv.height >= _fullVv - 60) _iProvClear();
 return;
 }
+var _iCovered = false;
+try {
+var _rI = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
+_iCovered = !!(_rI && _rI.height > 0 && _rI.bottom > ((_vv.offsetTop || 0) + _vv.height) + 12);
+} catch (eCovI) {}
 if (!_kbActive && !_iProv &&
 Date.now() - _iFocusAt > 900 &&
 Date.now() - kbLastTouchAt < 1500 &&
 kbTouchArmed(tgt) &&
 Date.now() > kbHardKeyUntil &&
 Math.abs(_vv.height - _fullVv) <= 2 &&
-Math.abs(ih - _iIH) <= 2) {
+Math.abs(ih - _iIH) <= 2 &&
+_iCovered) {
 _iProvDock();
 }
 } catch (e) {}
@@ -90431,23 +90437,25 @@ if (!_aKb && !_aProv && (ih >= _aIH - 12 || _aIH - ih < Math.round(Math.min(_aIH
 if (_aProv && _aVV.height >= _aH - 60) _aProvClear();
 return;
 }
+var _kbCovered = false;
+try {
+var _rC = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
+var _visBottomC = (_aVV.offsetTop || 0) + _aVV.height;
+_kbCovered = !!(_rC && _rC.height > 0 && _aCoverBottom(tgt) > _visBottomC + 12);
+} catch (eCov) {}
 if (!_aKb && !_aProv &&
 Date.now() - _aFocusAt > 900 &&
 Date.now() - kbLastTouchAt < 1500 &&
 kbTouchArmed(tgt) &&
 Date.now() > kbHardKeyUntil &&
 Math.abs(_aVV.height - _aH) <= 2 &&
-Math.abs(ih - _aIH) <= 2) {
+Math.abs(ih - _aIH) <= 2 && _kbCovered) {
 _aProvDock();
 } else if (!_aKb && !_aProv &&
 Date.now() - _aFocusAt > 900 &&
 kbTouchArmed(tgt) &&
 Date.now() > kbHardKeyUntil) {
-try {
-var _r = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
-var _visBottom = (_aVV.offsetTop || 0) + _aVV.height;
-if (_r && _r.height > 0 && _aCoverBottom(tgt) > _visBottom + 12) _aProvDock();
-} catch (eV337) {}
+if (_kbCovered) _aProvDock();
 }
 } catch (e) {}
 }
@@ -90826,4 +90834,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzc5275 -->
+<!-- __MOCHI_EOF__ mtzd4u9x -->

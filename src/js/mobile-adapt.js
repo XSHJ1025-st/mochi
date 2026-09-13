@@ -1050,13 +1050,23 @@
             if (_iProv && _vv.height >= _fullVv - 60) _iProvClear();
             return;
           }
+          // FIX 2026-09-13 #387：与安卓分支同闸——「实测被盖」才允许保底停靠。
+          // 读数判据只证「视口没动」不证「键盘在场」：无软键盘环境（电脑浏览器
+          // /移动模拟/外接键盘）视口永远不动，点输入栏即盲推停靠＝UI 乱+闪屏。
+          // 键盘在场必然盖住底部输入栏（元素可见则无需停靠），零机型回归。
+          var _iCovered = false;
+          try {
+            var _rI = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
+            _iCovered = !!(_rI && _rI.height > 0 && _rI.bottom > ((_vv.offsetTop || 0) + _vv.height) + 12);
+          } catch (eCovI) {}
           if (!_kbActive && !_iProv &&
               Date.now() - _iFocusAt > 900 &&
               Date.now() - kbLastTouchAt < 1500 &&
               kbTouchArmed(tgt) &&
               Date.now() > kbHardKeyUntil &&
               Math.abs(_vv.height - _fullVv) <= 2 &&
-              Math.abs(ih - _iIH) <= 2) {
+              Math.abs(ih - _iIH) <= 2 &&
+              _iCovered) {
             _iProvDock();
           }
         } catch (e) {}
@@ -2098,13 +2108,28 @@
               if (_aProv && _aVV.height >= _aH - 60) _aProvClear();
               return;
             }
+            // FIX 2026-09-13 #387：两处保底停靠统一加「实测被盖」闸——
+            // 读数判据（|vv−基线|≤2 且 |inner−基线|≤2）只证明「视口没动」，
+            // 不证明「键盘在场」：无软键盘环境（电脑浏览器/DevTools 移动模拟/
+            // 连实体键盘的机型）视口永远不动，点输入栏即盲推 58% 停靠＝
+            // 输入栏顶到屏中、下方大片空白（UI 乱），自愈清除后反复点击又
+            // 缩回＝闪屏（桌面 Chrome 移动模拟实测复现）。与 #337 第二判据
+            // 同一把尺：聚焦元素∪输入行底边低于可视区底边才算键盘在场的
+            // 直接证据——悬浮键盘真场景键盘必然盖住输入栏，照常停靠零回归；
+            // 元素看得见就无需停靠，只可能少停不可能多停。
+            var _kbCovered = false;
+            try {
+              var _rC = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
+              var _visBottomC = (_aVV.offsetTop || 0) + _aVV.height;
+              _kbCovered = !!(_rC && _rC.height > 0 && _aCoverBottom(tgt) > _visBottomC + 12);
+            } catch (eCov) {}
             if (!_aKb && !_aProv &&
                 Date.now() - _aFocusAt > 900 &&
                 Date.now() - kbLastTouchAt < 1500 &&
                 kbTouchArmed(tgt) &&
                 Date.now() > kbHardKeyUntil &&
                 Math.abs(_aVV.height - _aH) <= 2 &&
-                Math.abs(ih - _aIH) <= 2) {
+                Math.abs(ih - _aIH) <= 2 && _kbCovered) {
               _aProvDock();
             } else if (!_aKb && !_aProv &&
                 Date.now() - _aFocusAt > 900 &&
@@ -2116,11 +2141,7 @@
               // 改以「聚焦输入框实际底边低于可视区底边」为尺：被盖＝键盘在场的直接证据，
               // 与内核读数无关。常规内核主路径几百 ms 内已 _aKb 停靠不进这里；程序化聚焦
               // 无键盘（元素可见）也不进——零误触发面。高度仍由 _aProvDock 的尺子定。
-              try {
-                var _r = tgt.getBoundingClientRect ? tgt.getBoundingClientRect() : null;
-                var _visBottom = (_aVV.offsetTop || 0) + _aVV.height;
-                if (_r && _r.height > 0 && _aCoverBottom(tgt) > _visBottom + 12) _aProvDock();
-              } catch (eV337) {}
+              if (_kbCovered) _aProvDock();
             }
           } catch (e) {}
         }

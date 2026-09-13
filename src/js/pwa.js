@@ -154,6 +154,9 @@
   (function () {
     const bar = document.getElementById('ver-update-bar');
     if (!bar) return;
+    // #386：file:// 直开本地文件时浏览器禁止 fetch 同目录 json（origin 'null'），
+    // 版本轮询只会每 5s 刷一条 CORS 报错并误弹「网络异常」，直接跳过（线上 http/https 才启用）。
+    if (location.protocol === 'file:') return;
     let baseTs = null;      // 当前页面的版本时间戳（基线）
     let baseGot = false;
     // v3.7.x：基线在页面加载时直接从 splash-ver data-build-ts 确定（构建时注入），

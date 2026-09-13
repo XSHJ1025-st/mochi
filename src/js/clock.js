@@ -535,6 +535,9 @@ function buildSplashToc(list) {
 (function () {
   const notice = document.getElementById('splash-notice');
   if (!notice) return;
+  // #386：file:// 直开本地文件时 fetch 被浏览器 CORS 拦截（origin 'null'），
+  // 跳过远程公告，直接保留 template.html 静态兜底文案。
+  if (location.protocol === 'file:') return;
   fetch('./notice.json?v=' + Date.now(), { cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw new Error('notice fetch ' + r.status); return r.json(); })
     .then(function (data) {
