@@ -1076,7 +1076,7 @@ const FIX_SENTINELS = [
   // ==== 2026-09-12 #370 词典拼字两件（用户定稿：①词典全部分组字卡都进抽卡池，不再只取「语录*」前缀组；②形态概率——单气泡拼字为主，qs-multi 逐条连发降为 20% 小概率，multi 关=不能连发，双形态全关兜底单气泡不再兜底连发）====
   { name: '#370 词典拼字抽卡池放开到词典全部分组（原「语录*」前缀过滤删除=词库/常用词/自建词都能抽）', file: 'js/quote-spell.js', needle: "if (typeof q === 'string') quotes.push(q);" },
   { name: '#370 逐条连发降小概率（双开 80/20 单气泡为主；multi 关=one 恒 true 不能连发）', file: 'js/quote-spell.js', needle: 'if (multiOn) one = oneOn ? Math.random() >= 0.2 : false;' },
-  { name: '#370 词典拼字链路自检行（五道静默闸门任一被关=永不发词典字卡且零提示；删则用户设备上被哪道闸挡住无从知晓）', file: 'js/reply-settings.js', needle: "if (!useOk && !blocked) blocked = '词典「聊天使用」被关（系统预设字卡→词典独立页里打开）';" },
+  { name: '#370 词典拼字链路自检行（五道静默闸门任一被关=永不发词典字卡且零提示；删则用户设备上被哪道闸挡住无从知晓）', file: 'js/reply-settings.js', needle: "const ov = window.dictOverall ? window.dictOverall('chat') : 100;" },
   // ==== 2026-09-12 #371 群聊跟底三连写（红米 K80 Chrome 等多机型报「群聊联系人发消息不自动滚到最新，要手动滑」；单聊 #162 同根因同修法：移动内核丢弃一次性 scrollTop 写入/迟到布局顶开，group-chat.js 只写一次从未跟进）====
   { name: '#371 群聊跟底复写闸（触摸/滚轮接管判断；内核丢弃首写时视口离底>150px 会被 nearGcBottom 误判，复写不能只看 nearGcBottom）', file: 'js/group-chat.js', needle: 'if (!gcUserGcScrollTouched) scrollToBottom();' },
   { name: '#371 进群 renderAll 滚底走三连写（进页不贴底同一内核问题）', file: 'js/group-chat.js', needle: 'followGcBottom(true); // #371：进页滚底同走三连写' },
@@ -1106,6 +1106,10 @@ const FIX_SENTINELS = [
   { name: '#385 chat 文本气泡渲染调用内嵌令牌助手（删调用则助手在但不用，混合乱码消息仍直出令牌串）', file: 'js/chat.js', needle: 'window.mochiInlineTextHtml(T(__rawText))' },
   { name: '#385 单聊撤回段文本也走内嵌令牌助手（撤回复核样直出令牌串复现）', file: 'js/chat.js', needle: 'segHtml += window.mochiInlineTextHtml(' },
   { name: '#385 group-chat 文本气泡/预览走内嵌令牌助手（群聊纯文本气泡改回 escTxtBr 则群聊乱码复现）', file: 'js/group-chat.js', needle: 'window.mochiInlineTextHtml(rec.text' },
+  // ==== 2026-09-13 #383b 源头补口三件（本会话，未构建随下次收口）——#385 治渲染端消费者边界，这里治源头：群聊回复池同款两道守卫漏裸令牌（新乱码仍会从群聊发出）、群聊渲染裸令牌 text 走图片分支、bg-keep 保活通知选卡漏判＝通知栏文字出乱码 ====
+  { name: '#383b 群聊回复池令牌卡不进文字池（删则群聊继续从源头发出令牌卡）', file: 'js/group-chat.js', needle: 'c && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) return;' },
+  { name: '#383b 群聊渲染裸令牌 text 走图片分支（删则群聊存量整条令牌消息停留文字气泡）', file: 'js/group-chat.js', needle: "rec.type !== 'voice' && window.mochiMediaIsToken && window.mochiMediaIsToken(rec.text)" },
+  { name: '#383b 保活通知选卡剔除媒体令牌卡（删则通知栏文字出乱码）', file: 'js/bg-keep.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false;' },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');

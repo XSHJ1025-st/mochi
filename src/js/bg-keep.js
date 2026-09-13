@@ -1436,6 +1436,8 @@
     if (!t || t.length > 60) return false;
     if (t.indexOf('|||') >= 0) return false;               // 语音卡
     if (t.indexOf('data:') === 0) return false;            // 图片/表情包
+    // FIX 2026-09-12 #383 媒体池令牌卡（37 字符、无 |||、非 data:）不进保活通知文字
+    if (window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false;
     if (t.indexOf('http:') === 0 || t.indexOf('https:') === 0) return false;
     return true;
   }

@@ -4151,9 +4151,14 @@ type = r.type;
 if (type === 'sticker' || type === 'image' || type === 'voice') {
 return { text: t, type: type };
 }
+// #370c：csp-cust「自定义字卡占比」——TA 的纯文字回复里多大比例保留自定义字卡。
+// getDefaultCards() 命中时本会用预设默认字卡覆盖刚抽好的自定义文本；这里按 csp-cust
+// 掷签：命中（保留自定义，默认 50%）就跳过默认字卡覆盖，未命中才让默认字卡覆盖。
+const cspCust = Number(c['csp-cust'] !== undefined ? c['csp-cust'] : 50);
+const keepCustomText = isFinite(cspCust) && hit(cspCust);
 const defs = (window.getDefaultCards && window.getDefaultCards()) || null;
-if (defs && defs.type === 'text' && defs.text) {
-t = defs.text;
+if (defs && !keepCustomText && defs.type === 'text' && defs.text) {
+	t = defs.text;
 }
 const replyWord = (window.getReplyCard && window.getReplyCard()) || '';
 if (replyWord) {

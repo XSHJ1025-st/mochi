@@ -7032,6 +7032,32 @@ padding-bottom:20px; }
 font-size:13px; font-weight:700; letter-spacing:1px;
 padding:8px 2px 8px; color:var(--muted);
 }
+.gs-sec { margin-bottom:2px; }
+.gs-sec-head {
+display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+font-size:13px; font-weight:800; letter-spacing:1px; color:var(--muted);
+padding:14px 4px 8px; margin:4px 2px -2px;
+border-top:1px solid var(--line,#ececec);
+}
+.gs-sec-head b.sec-n {
+font-size:10px; font-weight:600; letter-spacing:.5px; color:var(--muted);
+background:rgba(0,0,0,.06); border-radius:8px; padding:2px 8px;
+}
+.gs-sec .gs-title { font-size:11px; letter-spacing:.5px; opacity:.8; padding-top:12px; }
+.gs-sec .set-group { margin-bottom:12px; }
+[data-theme="dark"] .gs-sec-head { border-top-color:rgba(255,255,255,.12); }
+[data-theme="dark"] .gs-sec-head b.sec-n { background:rgba(255,255,255,.08); color:#bbb; }
+#qs-diag .qsdiag-row { display:flex; flex-wrap:wrap; gap:6px; padding:4px 0 6px; }
+#qs-diag .qsdiag-gate { display:inline-flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:11px; font-weight:600; letter-spacing:.2px; border-radius:8px; padding:3px 8px; line-height:1.4; }
+#qs-diag .qsdiag-gate em { font-style:normal; font-weight:500; opacity:.9; }
+#qs-diag .qsdiag-ok { color:#0f7d3f; background:rgba(22,163,74,.12); }
+#qs-diag .qsdiag-bad { color:#b3261e; background:rgba(220,38,38,.12); }
+#qs-diag .qsdiag-okline { font-size:11px; color:#0f7d3f; font-weight:600; padding:2px 0; }
+#qs-diag .qsdiag-blocked { font-size:11px; color:#b3261e; background:rgba(220,38,38,.1); border-radius:8px; padding:5px 9px; font-weight:600; margin-top:2px; }
+[data-theme="dark"] #qs-diag .qsdiag-ok { color:#4ade80; background:rgba(34,197,94,.16); }
+[data-theme="dark"] #qs-diag .qsdiag-bad { color:#f87171; background:rgba(239,68,68,.16); }
+[data-theme="dark"] #qs-diag .qsdiag-okline { color:#4ade80; }
+[data-theme="dark"] #qs-diag .qsdiag-blocked { color:#f87171; background:rgba(239,68,68,.14); }
 .gs-row {
 display:flex; align-items:center; justify-content:space-between; gap:10px;
 padding:12px 14px; border-bottom:1px solid rgba(0,0,0,.05);
@@ -9334,9 +9360,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789267703404">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.618</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 10:48<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789272266716">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.619</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 12:04<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10615,7 +10641,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.618</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.619</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10910,7 +10936,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.618</span>
+              <span class="lic-ver">v3.26.619</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -11445,6 +11471,17 @@ transition-duration: .01ms !important;
             <div class="gs-row"><span>撤回补发概率</span><div class="stepper" data-k="rc-refix" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="rc-refix-val" readonly><button class="stp-max">+</button></div></div>
             <div class="gs-sub">撤回后补发总开关（默认开）。效果举例：TA 发「今晚一起去吃火锅好不好」→ 撤回了一半 → 按「撤回补发概率」再发一条新的（如「明天去逛街吧」）。把本开关关闭＝TA 撤回后什么都不再发；开着＝TA 撤回后有「撤回补发概率」的机会补一条新消息（这条不计入「回复条数」上限）</div>
           </div>
+          <!-- #370b：字卡·拼字 父分组——把「多字卡回复 / 词典拼字 / 梦角自由造句」三个拼字/造句类设置归拢到一个父标题下，避免它们夹在基础概率之间显得零散难找 -->
+          <div class="gs-sec">
+            <div class="gs-sec-head">字卡 · 拼字</div>
+            <div class="gs-sub" style="padding:0 14px 6px">以下三个是让 TA 的回复更生动的拼字/造句：多字卡回复、词典拼字、梦角自由造句。开启后按各自概率出现效果（气泡下带对应小标签）。</div>
+          <!-- #370c：回复内容「自定义字卡 vs 默认聊天字卡」相对占比——TA 的纯文字回复里，多大比例
+               保留你自己建的字卡、其余让系统预设「默认聊天字卡」覆盖；0=尽量用默认字卡，100=全用自定义 -->
+          <div class="gs-title">回复内容（自定义 vs 默认聊天字卡）</div>
+          <div class="set-group glass">
+            <div class="gs-row"><span>自定义字卡占比</span><div class="stepper" data-k="csp-cust" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="csp-cust-val" readonly><button class="stp-max">+</button></div></div>
+            <div class="gs-sub">TA 每条纯文字回复里，自定义字卡保留的比例（默认 50）：调高=大多数用你自己建的字卡，偶尔用预设默认聊天字卡；调低=更多用预设默认聊天字卡（见 字卡库→默认聊天字卡 页可逐张开关）；0=尽量用默认聊天字卡，100=全用自定义。默认的聊天字卡本身还受「默认聊天字卡」页的『聊天使用』概率控制。</div>
+          </div>
           <div class="gs-title">每条消息使用多字卡回复</div>
           <div class="set-group glass">
             <div class="gs-row"><span>多字卡回复</span><label class="toggle"><input type="checkbox" id="py-en"><span class="tk"></span></label></div>
@@ -11474,6 +11511,7 @@ transition-duration: .01ms !important;
             <!-- #364 存库概率：多桌面联系人时新句按此概率进公用库、其余进专属库；仅 1 个联系人固定进专属库 -->
             <div class="gs-row"><span>存公用库概率（多联系人）</span><div class="stepper" data-k="mjf-pub" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="mjf-pub-val" readonly><button class="stp-max">+</button></div></div>
             <div class="gs-sub">自由选择开关（默认关）：开启后梦角（联系人）说话按「触发概率」随机重造句，气泡下带「梦角自由造句」小标签。造句手法三选一（上方数字 0/1/2），效果举例（源句「今天也要好好爱自己，晚安哦」）：<br>· 0 语气词式：截掉一个词补个语气词 →「今天也要好好想你了」，或句尾加语气字 →「…晚安哦呀」，也可能词间加逗号/空格、删句尾字；<br>· 1 撤回式（默认）：像撤回消息一样把后半句撤回，留下的前缀就是新句子 →「今天也要好好爱自己」；<br>· 2 换字卡内容式：截掉一个词、从你别的字卡里挑一个词补上 →「今天也要好好看日落」。<br>造出的新句自动存进 字卡库→自定义聊天字卡→梦角自由造句 分类，可在那里查看/删除，也会作为语料被再次抽用。语料来自你自建的聊天字卡（至少 4 个汉字的文本卡）。概率 0 = 不触发。<br>「存公用库概率」：有多个桌面联系人时，造出的新句按该概率进公用字卡、其余进专属字卡；只有一个桌面联系人时固定进专属字卡</div>
+          </div>
           </div>
           <div class="gs-title">主动发送（联系人找你）</div>
           <div class="set-group glass">
@@ -11806,7 +11844,7 @@ transition-duration: .01ms !important;
       </div>
       <div class="sm-set-hint" style="padding:8px 16px 0">说明：系统词典供「词典拼字」抽句与切词，按分组展示，可逐张开启或关闭；语录进拼字抽句池，词进切词词典。</div>
       <!-- v3.36.x：词典使用设置（与聊天默认字卡页同款交互）——场景开关 + 使用概率 + 一键全部关闭。
-           存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 100=不额外限流，
+           存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 75，
            写信/朋友圈默认 30%）。聊天关=词典拼字整体停；写信/朋友圈开=词典语录按概率混入信件/动态文案。 -->
       <div class="set-group glass" style="margin:10px 12px 0">
         <div class="gs-row"><span>聊天使用</span><label class="toggle"><input type="checkbox" id="dict-use-chat" checked><span class="tk"></span></label></div>
@@ -30568,8 +30606,10 @@ type = r.type;
 if (type === 'sticker' || type === 'image' || type === 'voice') {
 return { text: t, type: type };
 }
+const cspCust = Number(c['csp-cust'] !== undefined ? c['csp-cust'] : 50);
+const keepCustomText = isFinite(cspCust) && hit(cspCust);
 const defs = (window.getDefaultCards && window.getDefaultCards()) || null;
-if (defs && defs.type === 'text' && defs.text) {
+if (defs && !keepCustomText && defs.type === 'text' && defs.text) {
 t = defs.text;
 }
 const replyWord = (window.getReplyCard && window.getReplyCard()) || '';
@@ -36039,7 +36079,8 @@ b.innerHTML = b.dataset.orig;
 b.dataset.showing = '1';
 }
 };
-} else if (rec.type === 'sticker' || rec.type === 'image') {
+} else if (rec.type === 'sticker' || rec.type === 'image' || (rec.type !== 'voice' && window.mochiMediaIsToken && window.mochiMediaIsToken(rec.text))) {
+if (rec.type !== 'sticker' && rec.type !== 'image') rec.type = 'image';
 b.style.padding = '6px';
 b.style.background = '';
 b.style.border = '';
@@ -36342,6 +36383,7 @@ if (typeof c !== 'string' || !c) return;
 if (pokeSet && pokeSet.has(c)) return; // 拍一拍字卡只走拍一拍模式，不进普通回复池
 if (c.indexOf('data:') === 0) return; // 图片已按媒体分类取
 if (c.indexOf('|||') >= 0) return; // 语音已按媒体分类取
+if (c && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) return;
 if (/[\uD800-\uDBFF]/.test(c) || /^[😀-🙏🌀-🫿]/u.test(c)) emoji.push(c);
 else if (/[\(（｡◕(◕)(づ｡(¬)]/.test(c) && /[\)）】)]/.test(c)) kaomoji.push(c);
 else text.push(c);
@@ -43101,6 +43143,7 @@ const DEFAULTS = {
 'kaomoji-prob': 5, 'quote-prob': 30,
 'rc-prob': 25, 'rc-refix': 35, 'rc-en': 1, 'cf-prob': 20,
 'py-en': 1, 'py-prob': 50, 'py-min': 2, 'py-max': 5,
+'csp-cust': 50,
 'qs-en': 1, 'qs-prob': 25, 'qs-cc': 0, 'qs-one': 1, 'qs-multi': 1, 'qs-noLimit': 1,
 'mjf-en': 0, 'mjf-prob': 20, 'mjf-style': 1,
 'mjf-pub': 80,
@@ -43330,24 +43373,21 @@ if (!diagEl) return;
 function qsDiagRender() {
 try {
 const c = window.replyCfg ? window.replyCfg() : {};
-const parts = [];
+const gates = [];
 let blocked = null;
+function gate(ok, label, detail) { gates.push({ ok: !!ok, label: label, detail: detail || '' }); return !ok; }
 const lockOk = !(window.cardLockOpen && !window.cardLockOpen());
-parts.push((lockOk ? '✓' : '✗') + '二级锁' + (lockOk ? '已解锁' : '未解锁'));
-if (!lockOk && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
+if (gate(lockOk, '二级锁', lockOk ? '已解锁' : '未解锁') && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
 const catOk = !(window.defaultCardCat && window.defaultCardCat('dict') === false);
-parts.push((catOk ? '✓' : '✗') + '词典分类开');
-if (!catOk && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';
+if (gate(catOk, '词典分类', catOk ? '开' : '关') && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';
 const useOk = !(window.dictUse && window.dictUse('chat') === false);
 const ov = window.dictOverall ? window.dictOverall('chat') : 100;
-parts.push((useOk ? '✓' : '✗') + '词典聊天使用' + (useOk ? '开（' + ov + '%）' : '关'));
-if (!useOk && !blocked) blocked = '词典「聊天使用」被关（系统预设字卡→词典独立页里打开）';
-if (useOk && ov <= 0 && !blocked) blocked = '词典「聊天使用概率」为 0（词典独立页调回 100%）';
+if (gate(useOk, '词典聊天使用', useOk ? '开（' + ov + '% 概率）' : '关') && !blocked) blocked = '词典「聊天使用」被关（词典独立页里打开）';
+if (useOk && !(typeof ov === 'number' && isFinite(ov) && ov > 0) && !blocked) blocked = '词典「聊天使用概率」为 0（词典独立页调高）';
 const enOk = c['qs-en'] === 1;
 const prob = Number(c['qs-prob']);
-parts.push((enOk ? '✓' : '✗') + '拼字总开关' + (enOk ? '开（' + (isFinite(prob) ? prob : 0) + '%）' : '关'));
-if (!enOk && !blocked) blocked = '「词典拼字」总开关被关（本组第一行打开）';
-if (enOk && !(isFinite(prob) && prob > 0) && !blocked) blocked = '「拼字概率」为 0（本组第二行调回 25% 以上）';
+if (gate(enOk, '拼字总开关', enOk ? '开（' + (isFinite(prob) ? prob : 0) + '% 概率）' : '关') && !blocked) blocked = '「词典拼字」总开关被关（本组第一行打开）';
+if (enOk && !(isFinite(prob) && prob > 0) && !blocked) blocked = '「拼字概率」为 0（本组第二行调高）';
 let poolN = 0;
 try {
 const grps = (window.getDefaultCardGroups && window.getDefaultCardGroups('dict')) || [];
@@ -43357,17 +43397,17 @@ if (window.isDefaultCardOff && window.isDefaultCardOff('dict', q)) return;
 poolN++;
 }); });
 } catch (e) {}
-parts.push((poolN > 0 ? '✓' : '✗') + '抽卡池 ' + poolN + ' 张');
-if (poolN <= 0 && !blocked) blocked = '词典抽卡池为空（词典独立页里把字卡逐张打开）';
-if (blocked) {
-diagEl.textContent = '链路自检：' + parts.join(' · ') + '——被挡住：' + blocked;
-diagEl.style.color = '#c0392b';
-} else {
-diagEl.textContent = '链路自检：' + parts.join(' · ') + '——正常，联系人每条回复约 ' + (isFinite(prob) ? prob : 0) + '% 概率变成词典拼字';
-diagEl.style.color = 'var(--muted,#888)';
-}
+if (gate(poolN > 0, '抽卡池', poolN + ' 张') && !blocked) blocked = '词典抽卡池为空（词典独立页把字卡逐张打开）';
+const okAll = !blocked;
+const html = '<div class="qsdiag-row">' + gates.map(g =>
+'<span class="qsdiag-gate ' + (g.ok ? 'qsdiag-ok' : 'qsdiag-bad') + '">' + (g.ok ? '✓' : '✗') + ' ' + g.label + '<em>' + g.detail + '</em></span>'
+).join('') + '</div>' +
+(okAll
+? '<div class="qsdiag-okline">链路正常 · 联系人每条回复约 ' + (isFinite(prob) ? prob : 0) + '% 概率变成词典拼字</div>'
+: '<div class="qsdiag-blocked">被挡住：' + blocked + '</div>');
+diagEl.innerHTML = html;
 } catch (e) {
-try { diagEl.textContent = '链路自检暂不可用'; } catch (e2) {}
+try { diagEl.innerHTML = '<div class="qsdiag-blocked">链路自检暂不可用</div>'; } catch (e2) {}
 }
 }
 qsDiagRender();
@@ -43379,6 +43419,10 @@ document.addEventListener('mochi-cardlock-open', qsDiagRender);
 document.addEventListener('mochi-cardlock-locked', qsDiagRender);
 document.addEventListener('contact-switched', qsDiagRender);
 window.__qsDiagRender = qsDiagRender;
+(function _qsWaitCardLib() {
+if (window.getDefaultCardGroups) { qsDiagRender(); return; }
+setTimeout(_qsWaitCardLib, 150);
+})();
 })();
 const asEnEl = document.getElementById('as-en');
 if (asEnEl) {
@@ -45128,7 +45172,7 @@ if (!dictView) return;
 const st = function () { try { return window.activeStore(); } catch (e) { return null; } };
 const gUse = function (k) { const s = st(); const v = s ? s.get('dict-use-' + k) : null; return v === null ? true : v === '1'; };
 const sUse = function (k, on) { const s = st(); if (s) s.set('dict-use-' + k, on ? '1' : '0'); };
-const DICT_OVERALL_DEF = { chat: 100, mail: 30, feed: 30 };
+const DICT_OVERALL_DEF = { chat: 75, mail: 30, feed: 30 };
 const gOv = function (k) { const s = st(); const v = s ? s.get('dict-overall-' + k) : null; return v === null ? DICT_OVERALL_DEF[k] : Math.max(0, Math.min(100, Number(v))); };
 const sOv = function (k, nv) { const s = st(); if (s) s.set('dict-overall-' + k, String(nv)); };
 window.dictUse = function (scene) { return gUse(scene === 'mail' ? 'mail' : scene === 'feed' ? 'feed' : 'chat'); };
@@ -58157,6 +58201,7 @@ const t = s.trim();
 if (!t || t.length > 60) return false;
 if (t.indexOf('|||') >= 0) return false;               // 语音卡
 if (t.indexOf('data:') === 0) return false;            // 图片/表情包
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false;
 if (t.indexOf('http:') === 0 || t.indexOf('https:') === 0) return false;
 return true;
 }
@@ -90777,4 +90822,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtz7sju4 -->
+<!-- __MOCHI_EOF__ mtzaicws -->

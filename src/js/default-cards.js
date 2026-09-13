@@ -749,8 +749,9 @@
   })();
   // v3.36.x：词典使用设置绑定（词典独立页）——场景开关（dict-use-chat/mail/feed）+
   //   使用概率（dict-overall-chat/mail/feed）+「使用的全部关闭」一键按钮。
-  //   存储 per-cid（随桌面命名空间，同 dc-use-* 语义）；默认全开，概率默认：聊天 100
-  //   （不额外限流，保持词典拼字既有行为）、写信/朋友圈 30（新混入场景）。
+  //   存储 per-cid（随桌面命名空间，同 dc-use-* 语义）；默认全开，概率默认：聊天 75
+  //   （v3.40.x #370c 应需求从 100 降为 75——词典拼字是「概率触发」不该恒 100 全用了，保留正常
+  //   回复空间）、写信/朋友圈 30（新混入场景）。
   //   消费方统一走 window.dictUse(scene) / window.dictOverall(scene) 读：
   //   quote-spell.js（聊天门）、mail.js taLetterContent（写信混入）、feed.js cardPool（朋友圈混入）。
   (function () {
@@ -758,7 +759,7 @@
     const st = function () { try { return window.activeStore(); } catch (e) { return null; } };
     const gUse = function (k) { const s = st(); const v = s ? s.get('dict-use-' + k) : null; return v === null ? true : v === '1'; };
     const sUse = function (k, on) { const s = st(); if (s) s.set('dict-use-' + k, on ? '1' : '0'); };
-    const DICT_OVERALL_DEF = { chat: 100, mail: 30, feed: 30 };
+    const DICT_OVERALL_DEF = { chat: 75, mail: 30, feed: 30 };
     const gOv = function (k) { const s = st(); const v = s ? s.get('dict-overall-' + k) : null; return v === null ? DICT_OVERALL_DEF[k] : Math.max(0, Math.min(100, Number(v))); };
     const sOv = function (k, nv) { const s = st(); if (s) s.set('dict-overall-' + k, String(nv)); };
     // 只读 API（跨文件消费）

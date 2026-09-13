@@ -604,7 +604,10 @@
           b.dataset.showing = '1';
         }
       };
-    } else if (rec.type === 'sticker' || rec.type === 'image') {
+    } else if (rec.type === 'sticker' || rec.type === 'image' || (rec.type !== 'voice' && window.mochiMediaIsToken && window.mochiMediaIsToken(rec.text))) {
+      // FIX 2026-09-12 #383 存量乱码自愈：修复前令牌卡曾以 type:text 入群聊库（气泡直出
+      // @@m:hash 串），渲染补认裸令牌走图片分支（<img src> 令牌照常被 media-pool 观察器解图）
+      if (rec.type !== 'sticker' && rec.type !== 'image') rec.type = 'image';
       b.style.padding = '6px';
       b.style.background = '';
       b.style.border = '';
@@ -959,6 +962,9 @@
         if (pokeSet && pokeSet.has(c)) return; // 拍一拍字卡只走拍一拍模式，不进普通回复池
         if (c.indexOf('data:') === 0) return; // 图片已按媒体分类取
         if (c.indexOf('|||') >= 0) return; // 语音已按媒体分类取
+        // FIX 2026-09-12 #383 群聊同款：#377 令牌化后裸 @@m:hash 卡体无 |||、非 data:，
+        // 旧两道守卫漏过＝令牌卡入群聊文字池被当文字直出（与 chat.js getPool 同批修复）
+        if (c && window.mochiMediaIsToken && window.mochiMediaIsToken(c)) return;
         if (/[\uD800-\uDBFF]/.test(c) || /^[😀-🙏🌀-🫿]/u.test(c)) emoji.push(c);
         else if (/[\(（｡◕(◕)(づ｡(¬)]/.test(c) && /[\)）】)]/.test(c)) kaomoji.push(c);
         else text.push(c);

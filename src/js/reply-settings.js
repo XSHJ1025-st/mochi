@@ -13,6 +13,11 @@
     'kaomoji-prob': 5, 'quote-prob': 30,
     'rc-prob': 25, 'rc-refix': 35, 'rc-en': 1, 'cf-prob': 20,
     'py-en': 1, 'py-prob': 50, 'py-min': 2, 'py-max': 5,
+    // v3.40.x #370c：csp-cust 回复文本「自定义字卡占比」（%，默认 50）——联系人回话里的
+    // 纯文字卡，多大比例保留「你自定义的字卡」、其余让系统默认聊天字卡覆盖（默认字卡本身还
+    // 受默认字卡「聊天使用」概率与分类权重控制）。0=尽量用默认字卡，100=全用自定义。chat.js
+    // replyOnce 的 genReplyText 文本路径消费（默认字卡覆盖点前掷一次，命中则保留自定义）
+    'csp-cust': 50,
     // v3.28.x #298：词典拼字——qs-en 总开关、qs-prob 拼字概率（%）、qs-cc 混用自定义字卡
     //（1=字卡池+词典语录合并抽句；0=只用词典语录）。逻辑与词库数据见 quote-spell.js +
     // default-cards-data.js「词典」分类；chat.js replyOnce 消费
@@ -354,28 +359,25 @@
     function qsDiagRender() {
       try {
         const c = window.replyCfg ? window.replyCfg() : {};
-        const parts = [];
+        const gates = [];
         let blocked = null;
+        function gate(ok, label, detail) { gates.push({ ok: !!ok, label: label, detail: detail || '' }); return !ok; }
         // ① 二级锁（锁定=系统预设字卡整体不存在，词典抽卡池为空）
         const lockOk = !(window.cardLockOpen && !window.cardLockOpen());
-        parts.push((lockOk ? '✓' : '✗') + '二级锁' + (lockOk ? '已解锁' : '未解锁'));
-        if (!lockOk && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
+        if (gate(lockOk, '二级锁', lockOk ? '已解锁' : '未解锁') && !blocked) blocked = '二级锁未解锁（开屏公告区的锁定卡里输入密码解锁）';
         // ② 词典分类开关（字卡库→系统预设字卡→分类「词典」）
         const catOk = !(window.defaultCardCat && window.defaultCardCat('dict') === false);
-        parts.push((catOk ? '✓' : '✗') + '词典分类开');
-        if (!catOk && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';
-        // ③ 词典页「聊天使用」+ 概率（词典独立页）
+        if (gate(catOk, '词典分类', catOk ? '开' : '关') && !blocked) blocked = '词典分类被关（字卡库→系统预设字卡→分类开关里打开「词典」）';
+        // ③ 词典页「聊天使用」+ 概率（词典独立页；dictOverall 是真概率掷签）
         const useOk = !(window.dictUse && window.dictUse('chat') === false);
         const ov = window.dictOverall ? window.dictOverall('chat') : 100;
-        parts.push((useOk ? '✓' : '✗') + '词典聊天使用' + (useOk ? '开（' + ov + '%）' : '关'));
-        if (!useOk && !blocked) blocked = '词典「聊天使用」被关（系统预设字卡→词典独立页里打开）';
-        if (useOk && ov <= 0 && !blocked) blocked = '词典「聊天使用概率」为 0（词典独立页调回 100%）';
+        if (gate(useOk, '词典聊天使用', useOk ? '开（' + ov + '% 概率）' : '关') && !blocked) blocked = '词典「聊天使用」被关（词典独立页里打开）';
+        if (useOk && !(typeof ov === 'number' && isFinite(ov) && ov > 0) && !blocked) blocked = '词典「聊天使用概率」为 0（词典独立页调高）';
         // ④ 拼字总开关/概率（本页）
         const enOk = c['qs-en'] === 1;
         const prob = Number(c['qs-prob']);
-        parts.push((enOk ? '✓' : '✗') + '拼字总开关' + (enOk ? '开（' + (isFinite(prob) ? prob : 0) + '%）' : '关'));
-        if (!enOk && !blocked) blocked = '「词典拼字」总开关被关（本组第一行打开）';
-        if (enOk && !(isFinite(prob) && prob > 0) && !blocked) blocked = '「拼字概率」为 0（本组第二行调回 25% 以上）';
+        if (gate(enOk, '拼字总开关', enOk ? '开（' + (isFinite(prob) ? prob : 0) + '% 概率）' : '关') && !blocked) blocked = '「词典拼字」总开关被关（本组第一行打开）';
+        if (enOk && !(isFinite(prob) && prob > 0) && !blocked) blocked = '「拼字概率」为 0（本组第二行调高）';
         // ⑤ 抽卡池条数（词典全部分组，剔除逐张关闭/空卡）
         let poolN = 0;
         try {
@@ -386,17 +388,18 @@
             poolN++;
           }); });
         } catch (e) {}
-        parts.push((poolN > 0 ? '✓' : '✗') + '抽卡池 ' + poolN + ' 张');
-        if (poolN <= 0 && !blocked) blocked = '词典抽卡池为空（词典独立页里把字卡逐张打开）';
-        if (blocked) {
-          diagEl.textContent = '链路自检：' + parts.join(' · ') + '——被挡住：' + blocked;
-          diagEl.style.color = '#c0392b';
-        } else {
-          diagEl.textContent = '链路自检：' + parts.join(' · ') + '——正常，联系人每条回复约 ' + (isFinite(prob) ? prob : 0) + '% 概率变成词典拼字';
-          diagEl.style.color = 'var(--muted,#888)';
-        }
+        if (gate(poolN > 0, '抽卡池', poolN + ' 张') && !blocked) blocked = '词典抽卡池为空（词典独立页把字卡逐张打开）';
+        // #370b：醒目彩块输出——通过绿 / 失败红，一眼看到卡在哪道闸
+        const okAll = !blocked;
+        const html = '<div class="qsdiag-row">' + gates.map(g =>
+          '<span class="qsdiag-gate ' + (g.ok ? 'qsdiag-ok' : 'qsdiag-bad') + '">' + (g.ok ? '✓' : '✗') + ' ' + g.label + '<em>' + g.detail + '</em></span>'
+        ).join('') + '</div>' +
+          (okAll
+            ? '<div class="qsdiag-okline">链路正常 · 联系人每条回复约 ' + (isFinite(prob) ? prob : 0) + '% 概率变成词典拼字</div>'
+            : '<div class="qsdiag-blocked">被挡住：' + blocked + '</div>');
+        diagEl.innerHTML = html;
       } catch (e) {
-        try { diagEl.textContent = '链路自检暂不可用'; } catch (e2) {}
+        try { diagEl.innerHTML = '<div class="qsdiag-blocked">链路自检暂不可用</div>'; } catch (e2) {}
       }
     }
     qsDiagRender();
@@ -409,6 +412,14 @@
     document.addEventListener('mochi-cardlock-locked', qsDiagRender);
     document.addEventListener('contact-switched', qsDiagRender);
     window.__qsDiagRender = qsDiagRender;
+    // #370a：自检初次渲染跑在 reply-settings.js 装载时，此时可能早于 default-cards.js
+    //   （定义 window.getDefaultCardGroups）执行——抽卡池读取函数未就绪会把「抽卡池」误算成 0
+    //   （假阴性「词典抽卡池为空」），且只有切开关/切联系人/重锁才会刷新去纠正，什么都不动就
+    //   一直停在假的「池 0」误导用户。这里兜底轮询：等抽卡池读取函数就绪后自动补算一次真值。
+    (function _qsWaitCardLib() {
+      if (window.getDefaultCardGroups) { qsDiagRender(); return; }
+      setTimeout(_qsWaitCardLib, 150);
+    })();
   })();
   // v3.5.101：关闭「主动发送」时明确提示（否则 TA 永不主动发消息且无任何提醒）
   const asEnEl = document.getElementById('as-en');

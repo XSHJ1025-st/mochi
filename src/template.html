@@ -2381,6 +2381,17 @@
             <div class="gs-row"><span>撤回补发概率</span><div class="stepper" data-k="rc-refix" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="rc-refix-val" readonly><button class="stp-max">+</button></div></div>
             <div class="gs-sub">撤回后补发总开关（默认开）。效果举例：TA 发「今晚一起去吃火锅好不好」→ 撤回了一半 → 按「撤回补发概率」再发一条新的（如「明天去逛街吧」）。把本开关关闭＝TA 撤回后什么都不再发；开着＝TA 撤回后有「撤回补发概率」的机会补一条新消息（这条不计入「回复条数」上限）</div>
           </div>
+          <!-- #370b：字卡·拼字 父分组——把「多字卡回复 / 词典拼字 / 梦角自由造句」三个拼字/造句类设置归拢到一个父标题下，避免它们夹在基础概率之间显得零散难找 -->
+          <div class="gs-sec">
+            <div class="gs-sec-head">字卡 · 拼字</div>
+            <div class="gs-sub" style="padding:0 14px 6px">以下三个是让 TA 的回复更生动的拼字/造句：多字卡回复、词典拼字、梦角自由造句。开启后按各自概率出现效果（气泡下带对应小标签）。</div>
+          <!-- #370c：回复内容「自定义字卡 vs 默认聊天字卡」相对占比——TA 的纯文字回复里，多大比例
+               保留你自己建的字卡、其余让系统预设「默认聊天字卡」覆盖；0=尽量用默认字卡，100=全用自定义 -->
+          <div class="gs-title">回复内容（自定义 vs 默认聊天字卡）</div>
+          <div class="set-group glass">
+            <div class="gs-row"><span>自定义字卡占比</span><div class="stepper" data-k="csp-cust" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="csp-cust-val" readonly><button class="stp-max">+</button></div></div>
+            <div class="gs-sub">TA 每条纯文字回复里，自定义字卡保留的比例（默认 50）：调高=大多数用你自己建的字卡，偶尔用预设默认聊天字卡；调低=更多用预设默认聊天字卡（见 字卡库→默认聊天字卡 页可逐张开关）；0=尽量用默认聊天字卡，100=全用自定义。默认的聊天字卡本身还受「默认聊天字卡」页的『聊天使用』概率控制。</div>
+          </div>
           <div class="gs-title">每条消息使用多字卡回复</div>
           <div class="set-group glass">
             <div class="gs-row"><span>多字卡回复</span><label class="toggle"><input type="checkbox" id="py-en"><span class="tk"></span></label></div>
@@ -2410,6 +2421,7 @@
             <!-- #364 存库概率：多桌面联系人时新句按此概率进公用库、其余进专属库；仅 1 个联系人固定进专属库 -->
             <div class="gs-row"><span>存公用库概率（多联系人）</span><div class="stepper" data-k="mjf-pub" data-min="0" data-max="100" data-step="5"><button class="stp-min">−</button><input class="stp-val" id="mjf-pub-val" readonly><button class="stp-max">+</button></div></div>
             <div class="gs-sub">自由选择开关（默认关）：开启后梦角（联系人）说话按「触发概率」随机重造句，气泡下带「梦角自由造句」小标签。造句手法三选一（上方数字 0/1/2），效果举例（源句「今天也要好好爱自己，晚安哦」）：<br>· 0 语气词式：截掉一个词补个语气词 →「今天也要好好想你了」，或句尾加语气字 →「…晚安哦呀」，也可能词间加逗号/空格、删句尾字；<br>· 1 撤回式（默认）：像撤回消息一样把后半句撤回，留下的前缀就是新句子 →「今天也要好好爱自己」；<br>· 2 换字卡内容式：截掉一个词、从你别的字卡里挑一个词补上 →「今天也要好好看日落」。<br>造出的新句自动存进 字卡库→自定义聊天字卡→梦角自由造句 分类，可在那里查看/删除，也会作为语料被再次抽用。语料来自你自建的聊天字卡（至少 4 个汉字的文本卡）。概率 0 = 不触发。<br>「存公用库概率」：有多个桌面联系人时，造出的新句按该概率进公用字卡、其余进专属字卡；只有一个桌面联系人时固定进专属字卡</div>
+          </div>
           </div>
           <div class="gs-title">主动发送（联系人找你）</div>
           <div class="set-group glass">
@@ -2742,7 +2754,7 @@
       </div>
       <div class="sm-set-hint" style="padding:8px 16px 0">说明：系统词典供「词典拼字」抽句与切词，按分组展示，可逐张开启或关闭；语录进拼字抽句池，词进切词词典。</div>
       <!-- v3.36.x：词典使用设置（与聊天默认字卡页同款交互）——场景开关 + 使用概率 + 一键全部关闭。
-           存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 100=不额外限流，
+           存键 dict-use-chat/mail/feed（默认开）、dict-overall-chat/mail/feed（聊天默认 75，
            写信/朋友圈默认 30%）。聊天关=词典拼字整体停；写信/朋友圈开=词典语录按概率混入信件/动态文案。 -->
       <div class="set-group glass" style="margin:10px 12px 0">
         <div class="gs-row"><span>聊天使用</span><label class="toggle"><input type="checkbox" id="dict-use-chat" checked><span class="tk"></span></label></div>
