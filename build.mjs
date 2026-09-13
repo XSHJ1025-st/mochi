@@ -1137,6 +1137,11 @@ const FIX_SENTINELS = [
   { name: '#391 查岗回应文字池剔令牌（删则查岗回复直出令牌串）', file: 'js/chat.js', needle: "c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken" },
   { name: '#391 每日留言池剔令牌（删则日历留言直出令牌串）', file: 'js/calendar.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(c))) cards.push(c);' },
   { name: '#391 信件补池剔令牌（删则来信正文拼令牌卡）', file: 'js/mail.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return;' },
+  // ==== 2026-09-13 #392 二级锁↔词典关系看不懂（用户实报：词典开关都开了没效果，不懂和开屏二级密码的关系）——三处把因果讲成人话：词典独立页红条（锁定时当场提示+去哪解锁）、回复设置自检首闸文案「二级锁→防未成年人锁·锁定中·词典被锁停」、开屏锁卡 tip 补锁定影响面清单 ====
+  { name: '#392 词典页二级锁关系提示条（删则锁定时词典开关全开却无效仍零解释）', file: 'js/default-cards.js', needle: 'function renderDictLockHint() {' },
+  { name: '#392 词典页提示条锚点（删则提示无处渲染）', file: 'template.html', needle: 'id="dict-lock-hint"' },
+  { name: '#392 回复设置自检首闸人话文案（改回「二级锁未解锁」则因果又看不懂）', file: 'js/reply-settings.js', needle: '锁定中·词典被锁停' },
+  { name: '#392 开屏锁卡 tip 锁定影响面清单（删则不知道锁定停用了哪些字卡）', file: 'js/clock.js', needle: '锁定影响：默认聊天字卡、词典（含词典拼字）' },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');
