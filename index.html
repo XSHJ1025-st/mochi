@@ -9366,9 +9366,9 @@ transition-duration: .01ms !important;
     <!-- v3.8.y：底部统一装进一个卡片框（版本/加载/提示/按钮成一整体，与顶部品牌卡片呼应） -->
     <div class="splash-footcard">
       <!-- v3.8.y：底部版本块——两行：名称+版本 / 部署时间+实时秒数（实时秒写入 #splash-ver-live） -->
-      <div class="splash-ver" id="splash-ver" data-build-ts="1789279773274">
-        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.625</b></span>
-        <span class="sv-deploy">部署于 2026-09-13 14:09<span id="splash-ver-live"></span></span>
+      <div class="splash-ver" id="splash-ver" data-build-ts="1789279957127">
+        <span class="sv-app">Mochi 字卡传讯 <b>v3.26.626</b></span>
+        <span class="sv-deploy">部署于 2026-09-13 14:12<span id="splash-ver-live"></span></span>
       </div>
       <!-- v3.5.120：数据（IndexedDB 回填）加载完成前不显示「点击进入」按钮，
            只显示加载提示；就绪后按钮才出现（clock.js 控制显隐） -->
@@ -10647,7 +10647,7 @@ transition-duration: .01ms !important;
           <div class="txt">清除本地数据</div>
         </div>
       </div>
-      <div class="ver">Mochi 字卡传讯 v3.26.625</div>
+      <div class="ver">Mochi 字卡传讯 v3.26.626</div>
       <div class="ver-credit">原版小红书@言序（1842523578）</div>
       <!-- v3.27.x：设置页底部防骗声明 -->
       <div class="set-alert">
@@ -10942,7 +10942,7 @@ transition-duration: .01ms !important;
             <div class="lic-hero-top">
               <div class="lic-title">Mochi 字卡传讯</div>
               <span class="lic-badge">原版</span>
-              <span class="lic-ver">v3.26.625</span>
+              <span class="lic-ver">v3.26.626</span>
             </div>
             <div class="lic-p">原创极简风情侣聊天模拟器：黑白灰简约设计，数据全部保存在本地、无需联网；所有内容均为代码触发、按概率运行，联系方可主动发送聊天消息。代码从零编写并完全开源——本作即原版。</div>
             <div class="lic-pills">
@@ -30168,7 +30168,7 @@ let _dkP = 50;
 try { if (window.dcfGet) _dkP = window.dcfGet('deskcheck'); } catch (e) {}
 const pool = (window.getDeskCheckPool ? window.getDeskCheckPool(dir) : []).concat(
 (window.getCustomCardsFor ? window.getCustomCardsFor(window.__activeCid || 'default') : []).filter(function (c) {
-return typeof c === 'string' && c.trim() && c.indexOf('data:') !== 0;
+return typeof c === 'string' && c.trim() && c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c));
 })
 );
 if (dir === 'meToTa' && /不要|不用|下次|不了|算了|no/i.test(String(answer))
@@ -50195,7 +50195,7 @@ return pk.length ? new Set(pk) : null;
 custom.forEach(c => {
 if (typeof c !== 'string') return;
 if (pokeSet && pokeSet.has(c)) return;
-if (c.indexOf('data:') !== 0 && c.indexOf('|||') < 0) cards.push(c);
+if (c.indexOf('data:') !== 0 && c.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c))) cards.push(c);
 });
 const defs = (window.getDefaultCardGroups && window.getDefaultCardGroups('main')) || [];
 const dcfg = (window.defaultCardCfg && window.defaultCardCfg()) || {};
@@ -52370,7 +52370,7 @@ return qs[Math.floor(Math.random() * qs.length)];
 window.pickAskCardReply = function (presetPool) {
 try {
 const cards = (window.getCustomCards && window.getCustomCards()) || [];
-const words = cards.filter(s => typeof s === 'string' && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && s.trim());
+const words = cards.filter(s => typeof s === 'string' && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s)) && s.trim());
 const preset = (Array.isArray(presetPool) ? presetPool : [])
 .filter(c => !(window.isDefaultCardOff && window.isDefaultCardOff('interact', c)));
 const hasPreset = preset.length > 0;
@@ -54618,6 +54618,7 @@ const t = s.trim();
 if (!t || t.length > 60) return false;
 if (t.indexOf('|||') >= 0) return false;
 if (t.indexOf('data:') === 0 || t.indexOf('http:') === 0 || t.indexOf('https:') === 0) return false;
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false; // FIX 2026-09-13 #388 同款守卫
 return true;
 });
 };
@@ -55169,7 +55170,7 @@ let t = '';
 let words = [];
 try {
 const cards = (window.getCustomCards && window.getCustomCards()) || [];
-words = cards.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0);
+words = cards.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s)));
 } catch (e) {}
 if (words.length) {
 const n = 1 + Math.floor(Math.random() * Math.min(5, words.length));
@@ -60074,6 +60075,7 @@ if (!s || typeof s !== 'string') return;
 if (pokeSet && pokeSet.has(s)) return;
 if (/^data:/.test(s)) return;
 if (s.indexOf('|||') >= 0) return;
+if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return;
 let isEmoji = false;
 for (const ch of s) {
 const c = ch.codePointAt(0);
@@ -90890,4 +90892,4 @@ lastHeal: his
 <!-- __MOCHI_EOF__ -->
 </body>
 </html>
-<!-- __MOCHI_EOF__ mtzez90a -->
+<!-- __MOCHI_EOF__ mtzf36vb -->

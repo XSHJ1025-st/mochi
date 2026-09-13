@@ -79,7 +79,8 @@
     custom.forEach(c => {
       if (typeof c !== 'string') return;
       if (pokeSet && pokeSet.has(c)) return;
-      if (c.indexOf('data:') !== 0 && c.indexOf('|||') < 0) cards.push(c);
+      // FIX 2026-09-13 #388 媒体池令牌卡不进每日留言池（同 chat.js #383 第三道守卫）
+      if (c.indexOf('data:') !== 0 && c.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c))) cards.push(c);
     });
     const defs = (window.getDefaultCardGroups && window.getDefaultCardGroups('main')) || [];
     // v3.8.x：默认字卡总开关 + 分类开关——关闭后每日留言不混入系统默认主字卡

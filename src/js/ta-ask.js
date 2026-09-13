@@ -493,7 +493,8 @@
   window.pickAskCardReply = function (presetPool) {
     try {
       const cards = (window.getCustomCards && window.getCustomCards()) || [];
-      const words = cards.filter(s => typeof s === 'string' && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && s.trim());
+      // FIX 2026-09-13 #388 媒体池令牌卡不进互动回应文字池（同 chat.js #383 第三道守卫）
+      const words = cards.filter(s => typeof s === 'string' && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s)) && s.trim());
       const preset = (Array.isArray(presetPool) ? presetPool : [])
         .filter(c => !(window.isDefaultCardOff && window.isDefaultCardOff('interact', c)));
       const hasPreset = preset.length > 0;
@@ -2960,6 +2961,7 @@ window.openTCPanel = openTCPanel;
       if (!t || t.length > 60) return false;
       if (t.indexOf('|||') >= 0) return false;
       if (t.indexOf('data:') === 0 || t.indexOf('http:') === 0 || t.indexOf('https:') === 0) return false;
+      if (window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false; // FIX 2026-09-13 #388 同款守卫
       return true;
     });
   };
@@ -3574,7 +3576,8 @@ window.openTCPanel = openTCPanel;
     let words = [];
     try {
       const cards = (window.getCustomCards && window.getCustomCards()) || [];
-      words = cards.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0);
+      // FIX 2026-09-13 #388 媒体池令牌卡不进文字题答案池（同 chat.js #383 第三道守卫）
+      words = cards.filter(s => typeof s === 'string' && s.trim() && s.indexOf('data:') !== 0 && s.indexOf('|||') < 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(s)));
     } catch (e) {}
     if (words.length) {
       const n = 1 + Math.floor(Math.random() * Math.min(5, words.length));

@@ -694,6 +694,8 @@
       // v3.6.x：语音字卡（文件名|||audio;base64）不以 data: 开头，需单独丢弃——
       //   否则整段音频 base64 会被当文字写进信件
       if (s.indexOf('|||') >= 0) return;
+      // FIX 2026-09-13 #388 媒体池令牌卡不进信件文字池（同 chat.js #383 第三道守卫）
+      if (window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return;
       let isEmoji = false;
       for (const ch of s) {
         const c = ch.codePointAt(0);

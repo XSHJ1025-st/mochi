@@ -1130,6 +1130,13 @@ const FIX_SENTINELS = [
   { name: '#388 reply-settings toast 懒创建兜底（删则直达回复设置页所有开关「已保存」提示永不弹）', file: 'js/reply-settings.js', needle: 'function ccToastEnsure() {' },
   { name: '#388 qs-cc 默认改回 1（改回 0 则用户点名需求复发）', file: 'js/reply-settings.js', needle: "'qs-en': 1, 'qs-prob': 25, 'qs-cc': 1," },
   { name: '#388 qs-cc 存量反向迁移标记升级 2（删则被 #310 迁移成 0 的桌面回不到默认开）', file: 'js/reply-settings.js', needle: "s.set('reply-qs-cc-migrated', '2');" },
+  // ==== 2026-09-13 #391 互动卡/查岗/留言/信件文字池令牌漏判收尾扫（vivo X200s Edge 报「TA 的好奇卡片联系人回复直出 @@m:hash 令牌」）——#383 系只修了聊天/群聊/朋友圈/信箱正文四条主链，getCustomCards 其余 6 个文字池消费方（ta-ask 好奇·吐槽回应/互动卡触发池/文字题连发、chat 查岗回应、calendar 每日留言、mail 信件补池）仍是旧两道守卫＝令牌卡被当文字抽中直出；本批全量补第三道守卫，此后 getCustomCards 全消费方零漏判 ====
+  { name: '#391 好奇/互动卡回应文字池剔令牌（删则卡片回复继续直出令牌串）', file: 'js/ta-ask.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(s)) && s.trim()' },
+  { name: '#391 互动卡触发池剔令牌（删则互动卡话术直出令牌串）', file: 'js/ta-ask.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(t)) return false' },
+  { name: '#391 文字题答案池剔令牌（删则问问TA答案直出令牌串）', file: 'js/ta-ask.js', needle: 'window.mochiMediaIsToken(s)));' },
+  { name: '#391 查岗回应文字池剔令牌（删则查岗回复直出令牌串）', file: 'js/chat.js', needle: "c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken" },
+  { name: '#391 每日留言池剔令牌（删则日历留言直出令牌串）', file: 'js/calendar.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(c))) cards.push(c);' },
+  { name: '#391 信件补池剔令牌（删则来信正文拼令牌卡）', file: 'js/mail.js', needle: 'window.mochiMediaIsToken && window.mochiMediaIsToken(s)) return;' },
 ];
 try {
   const built = CHECK_SENTINELS ? '' : readFileSync(join(root, 'index.html'), 'utf8');

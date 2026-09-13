@@ -3632,7 +3632,8 @@ let _dkP = 50;
 try { if (window.dcfGet) _dkP = window.dcfGet('deskcheck'); } catch (e) {}
 const pool = (window.getDeskCheckPool ? window.getDeskCheckPool(dir) : []).concat(
   (window.getCustomCardsFor ? window.getCustomCardsFor(window.__activeCid || 'default') : []).filter(function (c) {
-    return typeof c === 'string' && c.trim() && c.indexOf('data:') !== 0;
+    // FIX 2026-09-13 #388 媒体池令牌卡不进查岗回应文字池（同 chat.js #383 第三道守卫）
+    return typeof c === 'string' && c.trim() && c.indexOf('data:') !== 0 && !(window.mochiMediaIsToken && window.mochiMediaIsToken(c));
   })
 );
 if (dir === 'meToTa' && /不要|不用|下次|不了|算了|no/i.test(String(answer))
