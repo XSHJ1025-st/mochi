@@ -3968,12 +3968,15 @@ setTimeout(() => { if (!sameCid()) return; toast('TA 收藏了你的一条消息
 	if (window.addChatCount) window.addChatCount();
 	// v3.16.x：【TA的心情】低概率主动分享——正常回复后小概率额外追加一条
 	// 独立分享（内容来自 TA 的心情字卡库，非情绪链；自带总冷却 + 同类冷却）
+	// #390：10% 概率来源 tag 显示「你的心情」而非「TA的心情」——TA 有时发这张卡
+	// 实际是想问对方的心情，tag 恒为「TA的心情」表达不清
 	try {
 	const tm = (window.tryTaMoodShare && window.tryTaMoodShare()) || null;
 	if (tm && tm.content) {
+	const tmTag = Math.random() * 100 < 10 ? '你的心情' : 'TA的心情';
 	setTimeout(() => {
 	if (!sameCid()) return;
-	addIn(tm.content, { initiative: true, tag: 'TA的心情', tagNoDup: true });
+	addIn(tm.content, { initiative: true, tag: tmTag, tagNoDup: true });
 	}, randInt(1500, 3500));
 	}
 	} catch (e) {}
